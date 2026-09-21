@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<resources>
+   
+    <string-array name="rsfec_blocklengths">
+        <!--
+        <item>3</item>
+        <item>7</item>
+        -->
+        <item>15</item>
+        <item>31</item>
+        <item>63</item>
+        <item>127</item>
+        <item>255</item>
+        <!--
+        <item>511</item>
+        <item>1023</item>
+        <item>2047</item>
+        <item>4095</item>
+        <item>8191</item>
+        <item>16383</item>
+        <item>32767</item>
+        <item>65535</item>
+        -->
+        </string-array>
+
+</resources>

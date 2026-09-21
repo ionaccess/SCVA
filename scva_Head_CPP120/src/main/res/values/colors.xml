@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="colorPrimary">#48B04C</color>
+    <color name="colorPrimaryDark">#1E481F</color>
+    <color name="colorAccent">#673AB7</color>
+    <color name="appTextColor">#F44336</color>
+    <color name="edit_field_hint">#686565</color>
+    <color name="edit_field_text">#000000</color>
+    <color name="edit_field_border">#000000</color>
+    <color name="menuBgColor">#FFFFFF</color>
+    <color name="menuTextColor">#48B04C</color>
+    <color name="app_bg">#FFFFFF</color>
+
+    <color name="light_red">#20F44336</color>
+    <color name="red">#F41505</color>
+    <color name="transparent">#00000000</color>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="green">#4DAE51</color>
+    <color name="light_green">#2048B04C</color>
+    <color name="light_gray">#EBEFEE</color>
+
+    <color name="complete_black">#FF000000</color>
+    <color name="complete_white">#FFFFFFFF</color>
+    <color name="some_green">#14a805</color>
+    <color name="icon_yellow">#FFf6ff33</color>
+    <color name="light_blue_400">#FF29B6F6</color>
+    <color name="light_blue_600">#FF039BE5</color>
+    <color name="gray_400">#FFBDBDBD</color>
+    <color name="gray_600">#FF757575</color>
+</resources>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/termscreen"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/app_bg"
+    android:orientation="vertical"
+    android:padding="10dp"
+    android:weightSum="1">
+
+    <TextView
+        android:id="@+id/minsec"
+        style="@style/AppTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/txt_0000"
+        android:textSize="30sp"
+        android:visibility="gone">
+
+    </TextView>
+
+    <ScrollView
+        android:id="@+id/terminalscrollview"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.00">
+
+        <TextView
+            android:id="@+id/terminalview"
+            style="@style/AppTextView"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.00"
+            android:text="@string/txt_TerminalScreen"
+            android:textIsSelectable="true" />
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/FrameLayout1"
+        android:layout_width="fill_parent"
+        android:layout_height="50dp"
+        android:layout_weight="0.03">
+
+        <Button
+            android:id="@+id/button_modeDOWN"
+            style="@style/AppButton"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="@string/bt_PrevMode" />
+
+        <Button
+            android:id="@+id/button_modeUP"
+            style="@style/AppButton"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="@string/bt_NextMode" />
+
+        <Button
+            android:id="@+id/button_stopTX"
+            style="@style/AppButton"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="@string/bt_StopTx" />
+
+        <Button
+            android:id="@+id/button_tune"
+            style="@style/AppButton"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="@string/bt_Tune" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/FrameLayout2"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_weight="0.08"
+        android:weightSum="1">
+
+        <EditText
+            android:id="@+id/edit_text_out"
+            style="@style/AppEditText"
+            android:layout_width="fill_parent"
+            android:layout_height="match_parent"
+            android:layout_marginRight="5dp"
+            android:layout_weight="0.65"
+            android:maxLines="3"
+            android:paddingLeft="5dp"
+            android:textSize="10pt" />
+
+        <Button
+            android:id="@+id/button_sendtext"
+            style="@style/AppButton"
+            android:layout_width="90dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="fill_vertical"
+            android:layout_weight="0.35"
+            android:text="@string/bt_SendText">
+
+        </Button>
+    </LinearLayout>
+
+</LinearLayout>

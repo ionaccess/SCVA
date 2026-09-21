@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/modemwwfscreen"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/app_bg"
+    android:orientation="vertical"
+    android:padding="15dp"
+    android:weightSum="1">
+
+    <LinearLayout
+        android:id="@+id/FrameLayout1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:weightSum="1">
+
+        <TextView
+            style="@style/AppTextView"
+            android:id="@+id/cputext"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.90"
+            android:text="@string/txt_CPU" />
+
+        <ProgressBar
+            android:id="@+id/cpu_load"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="0.10"
+            android:max="100"
+            android:progressTint="@color/colorPrimary"
+            android:maxHeight="8dp"
+            android:minHeight="8dp"
+            android:progress="0" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/FrameLayout2"
+        android:layout_width="fill_parent"
+        android:layout_height="18dp"
+        android:layout_weight="0.01">
+
+        <CheckBox
+            style="@style/AppCheckBox"
+            android:id="@+id/rxrsid"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="@string/bt_RxRsID" />
+
+        <CheckBox
+            style="@style/AppCheckBox"
+            android:id="@+id/txrsid"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="@string/bt_TxRsID" />
+
+        <CheckBox
+            android:id="@+id/afc"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="@string/bt_AFC"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/modemscrollview"
+        android:layout_width="fill_parent"
+        android:layout_height="50dp"
+        android:layout_weight="0.75">
+
+        <TextView
+            style="@style/AppTextView"
+            android:id="@+id/modemview"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/txt_ModemScreen"/>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/FrameLayout3"
+        android:layout_width="fill_parent"
+        android:layout_height="150px"
+        android:layout_gravity="bottom"
+        android:layout_weight="0.21"
+        android:baselineAligned="false"
+        android:weightSum="1">
+
+        <LinearLayout
+            android:id="@+id/FrameLayout3A"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="0.12"
+            android:orientation="vertical"
+            android:weightSum="1">
+
+            <Button
+                style="@style/AppButton"
+                android:id="@+id/button_frequp"
+                android:layout_width="30dp"
+                android:layout_height="53dp"
+                android:layout_weight="0.50"
+                android:text="+"/>
+
+            <Button
+                style="@style/AppButton"
+                android:id="@+id/button_freqdown"
+                android:layout_width="30dp"
+                android:layout_height="53dp"
+                android:layout_weight="0.50"
+                android:text="-"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/FrameLayout3B"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="0.76"
+            android:orientation="vertical"
+            android:weightSum="1">
+
+            <view
+                android:id="@+id/WFbox"
+                class="com.SCVA.waterfallView"
+                android:layout_width="fill_parent"
+                android:layout_height="200px"
+                android:layout_gravity="fill_horizontal" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/FrameLayout3C"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="0.12"
+            android:orientation="vertical"
+            android:weightSum="1">
+
+            <Button
+                style="@style/AppButton"
+                android:id="@+id/button_wfsensup"
+                android:layout_width="30dp"
+                android:layout_height="53dp"
+                android:layout_weight="0.50"
+                android:text="+"/>
+
+            <Button
+                style="@style/AppButton"
+                android:id="@+id/button_wfsensdown"
+                android:layout_width="30dp"
+                android:layout_height="53dp"
+                android:layout_weight="0.50"
+                android:text="-"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/FrameLayout4"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:weightSum="1">
+
+        <TextView
+            style="@style/AppTextView"
+            android:id="@+id/cputext2"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.90"
+            android:text="@string/txt_S2N"/>
+
+        <ProgressBar
+            android:id="@+id/signal_quality"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="0.10"
+            android:max="100"
+            android:progressTint="@color/colorPrimary"
+            android:maxHeight="6dp"
+            android:minHeight="6dp"
+            android:progress="0" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/FrameLayout5"
+        android:layout_width="fill_parent"
+        android:layout_height="50dp"
+        android:layout_weight="0.03">
+
+        <Button
+            style="@style/AppButton"
+            android:id="@+id/button_modeDOWN"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="@string/bt_PrevMode"/>
+
+        <Button
+            style="@style/AppButton"
+            android:id="@+id/button_modeUP"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="@string/bt_NextMode"/>
+
+        <Button
+            style="@style/AppButton"
+            android:id="@+id/button_squelchDOWN"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="@string/bt_SqlchDown"/>
+
+        <Button
+            style="@style/AppButton"
+            android:id="@+id/button_squelchUP"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="@string/bt_SqlchUp"/>
+
+        <Button
+            style="@style/AppButton"
+            android:id="@+id/button_modemONOFF"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="@string/bt_ModemOnOff"/>
+
+        <Button
+            style="@style/AppButton"
+            android:id="@+id/button_waterfallONOFF"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:text="@string/bt_WFallOnOff"/>
+    </LinearLayout>
+</LinearLayout>

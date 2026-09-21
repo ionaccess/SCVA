@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="360dp"
+        android:layout_height="360dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/clip_green"
+        android:scaleType="fitCenter" />
+
+    <TextView
+        android:id="@+id/resolution"
+        style="@style/AppTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:gravity="center_horizontal"
+        android:text="100 X 100"
+        android:textColor="@color/colorPrimary"
+        android:textSize="13sp" />
+
+    <TextView
+        style="@style/AppTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:gravity="center_horizontal"
+        android:text="@string/downgrage"
+        android:textColor="@color/colorPrimary" />
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:shrinkColumns="0"
+        android:stretchColumns="0">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <SeekBar
+                android:id="@+id/seekBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="99"
+                android:progress="0" />
+
+            <TextView
+                android:id="@+id/progress"
+                style="@style/AppTextView"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:paddingRight="5dp"
+                android:text="0"
+                android:textColor="@color/colorPrimary"
+                android:textSize="15sp" />
+        </TableRow>
+
+        <CheckBox
+            android:id="@+id/useEnc"
+            style="@style/AppCheckBox"
+            android:textColor="@color/colorPrimary"
+            android:background="@drawable/corner_gray_shadow"
+            android:checked="false"
+            android:text="@string/use_encryption"
+            android:textStyle="bold" />
+    </TableLayout>
+
+    <TextView
+        style="@style/AppTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:gravity="center_horizontal"
+        android:text="@string/required_time"
+        android:textColor="@color/colorPrimary" />
+
+    <TextView
+        android:id="@+id/time_required"
+        style="@style/AppTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:gravity="center_horizontal"
+        android:text="@string/required_time"
+        android:textColor="@color/colorPrimary"
+        android:textSize="13sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:gravity="center_horizontal">
+
+        <Button
+            android:id="@+id/cancel"
+            style="@style/AppButton"
+            android:layout_width="150dp"
+            android:layout_height="40dp"
+            android:text="@string/cancel" />
+
+        <Button
+            android:id="@+id/send"
+            style="@style/AppButton"
+            android:layout_width="150dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="10dp"
+            android:text="@string/send" />
+
+    </LinearLayout>
+
+
+</LinearLayout>

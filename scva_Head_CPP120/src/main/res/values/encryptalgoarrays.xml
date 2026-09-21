@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="enc_algos">
+        <item>AES (256 bit)</item>
+        <item>RC6 (256 bit)</item>
+        <item>Serpent (256 bit)</item>
+        <item>Twofish (256 bit)</item>
+        <item>GOST28147 (256 bit)</item>
+        <!--        <item>BLOWFISH (448 bit)</item>-->
+    </string-array>
+
+    <string-array name="enc_algos_values">
+        <item>aes</item>
+        <item>rc6</item>
+        <item>serpent</item>
+        <item>twofish</item>
+        <item>gost28147</item>
+        <!--        <item>blowfish</item>-->
+    </string-array>
+
+</resources>

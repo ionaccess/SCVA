@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="rsfec_protocol_title">Reed–Solomon FEC protocol</string>
+    <string-array name="rsfec_protocol_names"><item>Legacy V1</item><item>V2 Experimental (THOR22)</item></string-array>
+    <string-array name="rsfec_protocol_values"><item>v1</item><item>v2</item></string-array>
+    <string name="rsfec_v2_summary">V2: byte-oriented GF(256), selectable TX protection from 10% to 90%. Both endpoints must select V2 and THOR22. Legacy settings apply only to V1.</string>
+    <string name="rsfec_v2_debug">V2 diagnostic event logs (no message contents)</string>
+    <string name="rsfec_v2_test">Send V2 diagnostic message</string>
+    <string name="rsfec_v2_test_summary">Transmits a known 64-byte pattern. Select V2 and THOR22 first. Review SCVA_V2 logs on both devices.</string>
+</resources>

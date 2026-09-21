@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="rsfec_p_levels_list">
+        <item>@string/values_High</item>
+        <item>@string/values_Medium</item>
+        <item>@string/values_Low</item>
+    </string-array>
+
+    <string-array name="rsfec_p_levels_values">
+        <item>2</item>
+        <item>1</item>
+        <item>0</item>
+    </string-array>
+
+    <string-array name="rsfec_v2_preset_names">
+        <item>Light 16 (Strong Signal)</item>
+        <item>Light 38 (Good Signal)</item>
+        <item>Balanced 51 (Medium Signal)</item>
+        <item>Balanced 64 (Medium-Weak Signal)</item>
+        <item>Strong 77 (Weak Signal)</item>
+        <item>Strong 90 (Weak and Bad Signal)</item>
+        <item>OP 96 (Bad Signal)</item>
+    </string-array>
+
+    <string-array name="rsfec_v2_preset_values">
+        <item>1</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+    </string-array>
+    
+    
+</resources>

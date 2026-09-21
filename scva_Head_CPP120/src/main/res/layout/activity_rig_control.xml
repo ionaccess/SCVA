@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
+
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/colorPrimary"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:shrinkColumns="1"
+        android:stretchColumns="1">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/delete"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/delete"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:visibility="invisible" />
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#00000000"
+                android:gravity="center"
+                android:text="@string/rig_control"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
+
+            <ImageView
+                android:id="@+id/save"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="15dp"
+                android:background="@drawable/save"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:visibility="invisible" />
+
+        </TableRow>
+    </TableLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:background="@drawable/corner_gray_shadow"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:padding="10dp">
+
+                <Button
+                    android:id="@+id/testConnect"
+                    style="@style/AppButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/test_cat"
+                    android:textAllCaps="false" />
+
+                <TextView
+                    android:id="@+id/txtStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center"
+                    android:text="@string/disconnected" />
+
+                <Button
+                    android:id="@+id/testPtt"
+                    style="@style/AppButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/corner_gray_shadow"
+                    android:enabled="false"
+                    android:text="@string/test_ptt"
+                    android:textAllCaps="false"
+                    android:textColor="@color/colorPrimary" />
+
+                <EditText
+                    android:id="@+id/frequency"
+                    style="@style/AppEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center"
+                    android:hint="@string/frequency"
+                    android:inputType="numberDecimal"
+                    android:padding="10dp"
+                    android:text=""
+                    android:textColorHint="@color/edit_field_hint" />
+
+                <Button
+                    android:id="@+id/setFrequency"
+                    style="@style/AppButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/set_frequency"
+                    android:textAllCaps="false" />
+
+                <Button
+                    android:id="@+id/testAudio"
+                    style="@style/AppButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/test_audio"
+                    android:textAllCaps="false" />
+
+                <TableLayout
+                    android:id="@+id/editor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/corner_gray_shadow"
+                    android:orientation="horizontal"
+                    android:shrinkColumns="1"
+                    android:stretchColumns="1">
+
+                    <TableRow
+                        android:layout_width="match_parent"
+                        android:layout_height="45dp"
+                        android:background="@drawable/corner_gray_shadow">
+
+                        <TextView
+                            style="@style/AppTextView"
+                            android:layout_width="150dp"
+                            android:layout_height="45dp"
+                            android:layout_marginLeft="5dp"
+                            android:background="#00000000"
+                            android:gravity="center_vertical"
+                            android:text="@string/pre_send_delay"
+                            android:textColorHint="@color/edit_field_text"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <EditText
+                            android:id="@+id/delay"
+                            style="@style/AppEditText"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_marginLeft="5dp"
+                            android:background="#00000000"
+                            android:ems="5"
+                            android:gravity="center_vertical"
+                            android:hint="@string/seconds"
+                            android:inputType="number"
+                            android:paddingLeft="5dp"
+                            android:text="1"
+                            android:textColorHint="@color/edit_field_hint" />
+                    </TableRow>
+
+                    <CheckBox
+                        android:id="@+id/enableRig"
+                        style="@style/AppCheckBox"
+                        android:background="@drawable/corner_gray_shadow"
+                        android:checked="false"
+                        android:enabled="true"
+                        android:text="@string/enable_rig_control"
+                        android:textStyle="bold" />
+
+                    <CheckBox
+                        android:id="@+id/enableAudioOverUSB"
+                        style="@style/AppCheckBox"
+                        android:background="@drawable/corner_gray_shadow"
+                        android:checked="false"
+                        android:enabled="true"
+                        android:text="@string/enable_audio_over_usb"
+                        android:textStyle="bold" />
+                </TableLayout>
+
+                <Button
+                    android:id="@+id/sendLog"
+                    style="@style/AppButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Send Log"
+                    android:textAllCaps="false" />
+
+                <Button
+                    android:id="@+id/crashApp"
+                    style="@style/AppButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="Crash The App"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

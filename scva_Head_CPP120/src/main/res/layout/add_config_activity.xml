@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:orientation="vertical">
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/colorPrimary"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:shrinkColumns="1"
+        android:stretchColumns="1">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/keys"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="15dp"
+                android:background="@drawable/keys_icon_white"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:visibility="visible" />
+
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#00000000"
+                android:gravity="center"
+                android:text="@string/configuration"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
+
+            <ImageView
+                android:id="@+id/save"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/save"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:visibility="visible" />
+
+        </TableRow>
+    </TableLayout>
+
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="15dp">
+
+            <TableLayout
+                android:id="@+id/editor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/corner_gray_shadow"
+                android:orientation="horizontal"
+                android:shrinkColumns="1"
+                android:stretchColumns="1">
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/corner_gray_shadow">
+
+                    <TextView
+                        android:id="@+id/lOne"
+                        style="@style/AppTextView"
+                        android:layout_width="120dp"
+                        android:layout_height="45dp"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:gravity="center_vertical"
+                        android:text="Name:"
+                        android:textColorHint="@color/edit_field_text"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/name"
+                        style="@style/AppEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:ems="5"
+                        android:gravity="center_vertical"
+                        android:inputType="textPersonName"
+                        android:textColorHint="@color/edit_field_hint" />
+
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/secondndView"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/corner_gray_shadow">
+
+
+                    <TextView
+                        android:id="@+id/lThree"
+                        style="@style/AppTextView"
+                        android:layout_width="120dp"
+                        android:layout_height="45dp"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:gravity="center_vertical"
+                        android:text="Description:"
+                        android:textColorHint="@color/edit_field_text"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+
+                    <EditText
+                        android:id="@+id/description"
+                        style="@style/AppEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:ems="5"
+                        android:gravity="center_vertical"
+                        android:inputType="textPersonName"
+                        android:textColorHint="@color/edit_field_hint" />
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/corner_gray_shadow">
+
+                    <TextView
+                        android:id="@+id/modulation"
+                        style="@style/AppTextView"
+                        android:layout_width="120dp"
+                        android:layout_height="45dp"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="10dp"
+                        android:text="@string/modulation"
+                        android:textColorHint="@color/edit_field_text"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/modulationType"
+                        style="@style/AppEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="45dp"
+                        android:background="@color/transparent"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="10dp"
+                        android:text="Use BPSK31"
+                        android:textColorHint="@color/edit_field_text"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/corner_gray_shadow">
+
+                    <TextView
+                        style="@style/AppTextView"
+                        android:layout_width="120dp"
+                        android:layout_height="45dp"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:gravity="center_vertical"
+                        android:text="@string/frequency"
+                        android:textColorHint="@color/edit_field_text"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+
+                    <EditText
+                        android:id="@+id/frequency"
+                        style="@style/AppEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:ems="5"
+                        android:gravity="center_vertical"
+                        android:inputType="number"
+                        android:textColorHint="@color/edit_field_hint" />
+
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/thirdView"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/corner_gray_shadow">
+
+                    <TextView
+                        style="@style/AppTextView"
+                        android:layout_width="120dp"
+                        android:layout_height="45dp"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:gravity="center_vertical"
+                        android:text="Error Correction"
+                        android:textColorHint="@color/edit_field_text"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+
+                    <TextView
+                        android:id="@+id/errorCorrection"
+                        style="@style/AppEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:gravity="center_vertical"
+                        android:textColorHint="@color/edit_field_hint"
+                        android:textSize="14sp" />
+
+                </TableRow>
+
+                <TableRow
+                    android:id="@+id/thirdViewg"
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/corner_gray_shadow">
+
+                    <TextView
+                        style="@style/AppTextView"
+                        android:layout_width="120dp"
+                        android:layout_height="45dp"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:gravity="center_vertical"
+                        android:text="@string/block_codeword"
+                        android:textColorHint="@color/edit_field_text"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+
+                    <EditText
+                        android:id="@+id/codeWordSize"
+                        style="@style/AppEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:gravity="center_vertical"
+                        android:inputType="number"
+                        android:textColorHint="@color/edit_field_hint" />
+
+                </TableRow>
+
+                <CheckBox
+                    android:id="@+id/useEnc"
+                    style="@style/AppCheckBox"
+                    android:background="@drawable/corner_gray_shadow"
+                    android:checked="true"
+                    android:text="@string/use_encryption"
+                    android:textStyle="bold" />
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/corner_gray_shadow">
+
+                    <TextView
+                        android:id="@+id/encAlgo"
+                        style="@style/AppTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="10dp"
+                        android:text="@string/encryption_algorithm"
+                        android:textColorHint="@color/edit_field_text"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+
+                    <TextView
+                        android:id="@+id/encAlgoType"
+                        style="@style/AppEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="45dp"
+                        android:background="@color/transparent"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="10dp"
+                        android:text="AES (256 bit)"
+                        android:textColorHint="@color/edit_field_text"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/corner_gray_shadow">
+
+                    <TextView
+                        style="@style/AppTextView"
+                        android:layout_width="120dp"
+                        android:layout_height="45dp"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:gravity="center_vertical"
+                        android:text="Audio Gain"
+                        android:textColorHint="@color/edit_field_text"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/audioGain"
+                        style="@style/AppEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:ems="5"
+                        android:gravity="center_vertical"
+                        android:inputType="numberDecimal"
+                        android:textColorHint="@color/edit_field_hint" />
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/corner_gray_shadow">
+
+                    <TextView
+                        style="@style/AppTextView"
+                        android:layout_width="120dp"
+                        android:layout_height="45dp"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:gravity="center_vertical"
+                        android:text="Squelch"
+                        android:textColorHint="@color/edit_field_text"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/squelch"
+                        style="@style/AppEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:ems="5"
+                        android:gravity="center_vertical"
+                        android:inputType="numberDecimal"
+                        android:textColorHint="@color/edit_field_hint" />
+
+                </TableRow>
+
+                <CheckBox
+                    android:id="@+id/afc"
+                    style="@style/AppCheckBox"
+                    android:background="@drawable/corner_gray_shadow"
+                    android:checked="true"
+                    android:text="AFC"
+                    android:textStyle="bold" />
+
+            </TableLayout>
+
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:shrinkColumns="*"
+                android:stretchColumns="*">
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/corner_gray_shadow">
+
+                    <CheckBox
+                        android:id="@+id/rxrsid"
+                        style="@style/AppCheckBox"
+                        android:background="@drawable/corner_gray_shadow"
+                        android:checked="false"
+                        android:text="Rx RsID"
+                        android:textStyle="bold" />
+
+                    <CheckBox
+                        android:id="@+id/txrsid"
+                        style="@style/AppCheckBox"
+                        android:background="@drawable/corner_gray_shadow"
+                        android:checked="false"
+                        android:text="Tx RsID"
+                        android:textStyle="bold" />
+                </TableRow>
+            </TableLayout>
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="5dp"
+    android:layout_gravity="center"
+    android:background="@drawable/round_border_shadow"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:text="@string/add_key"
+        android:textColor="@color/edit_field_text"
+        android:textSize="28sp"
+        android:textStyle="bold" />
+
+    <TableLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent">
+
+        <TableRow
+            android:id="@+id/rKey"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:padding="2dp"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center_vertical"
+                android:background="@drawable/rounded_rect_shadow"
+                android:src="@drawable/ic_key" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="15dp"
+                android:gravity="center_vertical"
+                android:minLines="4"
+                android:text="Random Key \nCreates a random secret key.\nThis is the most secure key type, \nbut needs some effort sharing \nit with your remote parties."
+                android:textColor="@color/edit_field_text"
+                android:textSize="12sp" />
+
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/pKey"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="10dp">
+
+            <ImageView
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center_vertical"
+                android:background="@drawable/rounded_rect_shadow"
+                android:src="@drawable/random" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:minLines="4"
+                android:paddingLeft="15dp"
+                android:text="Password-based Key \nCreates a key based on a passphrase.\nThis is less secure, but you only\n need to agree on a passphrase, \nso the other party can generate a matching key."
+                android:textColor="@color/edit_field_text"
+                android:textSize="12sp" />
+
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/iKey"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp">
+
+            <ImageView
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center_vertical"
+                android:background="@drawable/rounded_rect_shadow"
+                android:src="@drawable/ic_r" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingLeft="15dp"
+                android:gravity="center_vertical"
+                android:minLines="4"
+                android:text="Import Key \nImport by scanning a QR-Code from \nanother phone or backup printout."
+                android:textColor="@color/edit_field_text"
+                android:textSize="12sp" />
+        </TableRow>
+    </TableLayout>
+</LinearLayout>

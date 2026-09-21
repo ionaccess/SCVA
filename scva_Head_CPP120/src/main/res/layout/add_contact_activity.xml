@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:orientation="vertical">
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/colorPrimary"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:shrinkColumns="1"
+        android:stretchColumns="1">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/delete"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/delete"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:visibility="visible" />
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#00000000"
+                android:gravity="center"
+                android:text="@string/add_contact"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
+
+            <ImageView
+                android:id="@+id/keys"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="15dp"
+                android:background="@drawable/settings"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:visibility="invisible" />
+
+        </TableRow>
+    </TableLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="15dp">
+
+        <TableLayout
+            android:id="@+id/editor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/corner_gray_shadow"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:shrinkColumns="1"
+            android:stretchColumns="1">
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:background="@drawable/corner_gray_shadow">
+
+                <TextView
+                    android:id="@+id/lOne"
+                    android:layout_width="120dp"
+                    android:layout_height="45dp"
+                    android:layout_marginLeft="5dp"
+                    android:background="#00000000"
+                    android:gravity="center_vertical"
+                    android:text="Name:"
+                    android:textColorHint="@color/edit_field_text"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/name"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginLeft="5dp"
+                    android:background="#00000000"
+                    android:ems="5"
+                    android:gravity="center_vertical"
+                    android:inputType="textPersonName"
+                    android:textColorHint="@color/edit_field_hint" />
+
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:background="@drawable/corner_gray_shadow">
+
+                <TextView
+                    android:id="@+id/lTwo"
+                    android:layout_width="120dp"
+                    android:layout_height="45dp"
+                    android:layout_marginLeft="5dp"
+                    android:background="#00000000"
+                    android:gravity="center_vertical"
+                    android:text="Mobile:"
+                    android:textColorHint="@color/edit_field_text"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <EditText
+                    android:id="@+id/mobile"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginLeft="5dp"
+                    android:background="#00000000"
+                    android:ems="5"
+                    android:gravity="center_vertical"
+                    android:inputType="phone"
+                    android:textColorHint="@color/edit_field_hint" />
+
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/thirdView"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:background="@drawable/corner_gray_shadow">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:id="@+id/lThree"
+                        android:layout_width="130dp"
+                        android:layout_height="45dp"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:gravity="center_vertical"
+                        android:text="Description:"
+                        android:textColorHint="@color/edit_field_text"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                </FrameLayout>
+
+                <EditText
+                    android:id="@+id/description"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginLeft="5dp"
+                    android:background="#00000000"
+                    android:ems="5"
+                    android:gravity="center_vertical"
+                    android:inputType="textPersonName"
+                    android:textColorHint="@color/edit_field_hint" />
+
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/configView"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:background="@drawable/corner_gray_shadow">
+
+                <TextView
+                    android:layout_width="130dp"
+                    android:layout_height="45dp"
+                    android:layout_marginLeft="5dp"
+                    android:background="#00000000"
+                    android:gravity="center_vertical"
+                    android:text="@string/configuration"
+                    android:textColorHint="@color/edit_field_text"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/configuration"
+                    style="@style/AppEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginLeft="5dp"
+                    android:background="#00000000"
+                    android:gravity="center_vertical"
+                    android:hint="@string/select_a_configuration"
+                    android:paddingLeft="2dp"
+                    android:textColorHint="@color/edit_field_hint" />
+
+            </TableRow>
+        </TableLayout>
+
+
+        <LinearLayout
+            android:id="@+id/saveView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@color/transparent"
+            android:gravity="center"
+            android:orientation="vertical">
+
+
+            <EditText
+                android:id="@+id/note"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/corner_gray_shadow"
+                android:ems="5"
+                android:gravity="left|top"
+                android:inputType="textMultiLine"
+                android:padding="5dp"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@+id/save"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginTop="5dp"
+                android:background="@color/colorPrimary"
+                android:text="@string/save"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/start_chat"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginTop="5dp"
+                android:background="@color/colorPrimary"
+                android:text="START CHAT"
+                android:textColor="@color/white"
+                android:visibility="gone" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

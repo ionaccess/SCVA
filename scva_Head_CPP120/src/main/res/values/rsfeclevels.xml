@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="rsfec_levels_list">
+        <item>@string/values_High</item>
+        <item>@string/values_Medium</item>
+        <item>@string/values_Low</item>
+    </string-array>
+
+    <string-array name="rsfec_levels_values">
+        <item>2</item>
+        <item>1</item>
+        <item>0</item>
+    </string-array>
+    
+    
+</resources>
