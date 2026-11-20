@@ -11,7 +11,7 @@ public class Constants
 	 */
 	public static boolean devMode = false;
 	// ⚠️ Remove before code push ⚠️
-	public static String logNumber = "+923216921392";
+	public static String logNumber = "";
 	public final static int BAUD_RATE = 115200; // 38400
 	public final static int MODEMVIEWwithWF = 4;
 	public final static int TERMVIEW = 1;
