@@ -241,7 +241,8 @@ public class PinVerificationActivity extends BaseActivity implements View.OnClic
 
 		Utils utils = new Utils();
 		// Burning the keys
-		new KeysDataSource(this).burnKeyStore();
+		new MessagesDataSource(this).burnMessages();
+                new KeysDataSource(this).burnKeyStore();
 
 		new SettingsDataSource(this).burnSettings();
 
@@ -251,7 +252,7 @@ public class PinVerificationActivity extends BaseActivity implements View.OnClic
 
 		new ConfigurationsDataSource(this).burnConfigurations();
 
-		new MessagesDataSource(this).burnMessages();
+
 
 		utils.showNotification(this, "\uD83D\uDD25\uD83D\uDD25\uD83D\uDD25");
 

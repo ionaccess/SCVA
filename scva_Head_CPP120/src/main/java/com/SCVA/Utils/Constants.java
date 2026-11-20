@@ -9,9 +9,9 @@ public class Constants
 	 * ⚠️ All testing data is being fed using ⚠️
      * ⚠️ this field mark false before build ⚠️
 	 */
-	public static boolean devMode = true;
+	public static boolean devMode = false;
 	// ⚠️ Remove before code push ⚠️
-	public static String logNumber = "";
+	public static String logNumber = "+923216921392";
 	public final static int BAUD_RATE = 115200; // 38400
 	public final static int MODEMVIEWwithWF = 4;
 	public final static int TERMVIEW = 1;
@@ -53,5 +53,8 @@ public class Constants
 	public static final String SETTINGS_REPEAT_TIMES = "SETTINGS_REPEAT_TIMES";
 	public static final String SETTINGS_SCHEDULE_DELAY = "SETTINGS_SCHEDULE_DELAY";
 	public static final String SETTINGS_RIG_FREQUENCY = "SETTINGS_SCHEDULE_FREQUENCY";
+    // V2 admitted Radio modes.
+    public static final String[] V2_PASSED_MODEMS =
+            { "THOR22", "THOR50x1", "THOR50x2", "THOR8", "THOR100", "BPSK31", "BPSK125", "BPSK500", "MFSK8", "MFSK32", "MFSK64", "MFSK128" };
 
 }

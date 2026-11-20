@@ -2362,7 +2362,7 @@ public class SCVA extends AppCompatActivity implements CallBack, UICallBack
 				if (!GS.gI().isReceivingForm())
 				{
 					Modem.setListener(SCVA.this);
-					processor.sendMessage(msgToSend + "§");
+//					processor.sendMessage(msgToSend + "§");
 					// Processor.TX_Text += (msgToSend + "§");
 					// // Processor.q.send_txrsid_command("ON");
 					// Modem.txData("", "", msgToSend + "§", 0, 0, false, "");
@@ -5678,7 +5678,7 @@ public class SCVA extends AppCompatActivity implements CallBack, UICallBack
 			isBound = true;
 
 			String msg = processor.getMessage();
-			processor.setUIListener(SCVA.this);
+//			processor.setUIListener(SCVA.this);
 			if (Constants.devMode) Toast.makeText(SCVA.this, msg, Toast.LENGTH_SHORT).show();
 		}
 

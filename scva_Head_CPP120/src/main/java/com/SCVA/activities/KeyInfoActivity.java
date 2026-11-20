@@ -197,7 +197,11 @@ public class KeyInfoActivity extends Activity implements View.OnClickListener, C
 						@Override
 						public void onClick(DialogInterface dialog, int id)
 						{
-							keyStore.delete(key);
+							try {
+                                if(!keyStore.delete(key)) { Toast.makeText(KeyInfoActivity.this,"Key could not be deleted.",Toast.LENGTH_LONG).show();return; }
+                            } catch(KeysDataSource.KeyHistoryPolicyException | com.SCVA.db.SqliteHelper.UnsupportedMessageSchemaException blocked) {
+                                Toast.makeText(KeyInfoActivity.this,blocked.getMessage(),Toast.LENGTH_LONG).show();return;
+                            }
 							dialog.dismiss();
 							dialog = null;
 							new Utils().showNotification(KeyInfoActivity.this, key.getName());

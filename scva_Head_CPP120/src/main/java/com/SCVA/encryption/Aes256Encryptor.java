@@ -90,7 +90,7 @@ public class Aes256Encryptor extends BaseEncryptor
 	@Override
 	public String decrypt(String cipher)
 	{
-		Utils.println("AES decrypt cipher: ", cipher);
+		// Utils.println("AES decrypt cipher: ", cipher);
 		try
 		{
 			Cipher cipher2 = Cipher.getInstance("AES");
@@ -98,12 +98,12 @@ public class Aes256Encryptor extends BaseEncryptor
 			IvParameterSpec ivSpec = new IvParameterSpec(IV);
 			cipher2.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
 			byte[] decryptedText = cipher2.doFinal(Base64.decode(cipher, Base64.DEFAULT));
-			Utils.println("AES decryptedText: ", new String(decryptedText));
+			// Utils.println("AES decryptedText: ", new String(decryptedText));
 			return new String(decryptedText);
 		}
 		catch (Exception e)
 		{
-			Utils.println("AES decrypt error: ", e.toString());
+			// Utils.println("AES decrypt error: ", e.toString());
 			e.printStackTrace();
 		}
 		return null;

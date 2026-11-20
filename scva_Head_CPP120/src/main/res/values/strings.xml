@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?><!DOCTYPE resources
-    [<!ENTITY txt_app_version "3.2.04">]>
+    [<!ENTITY txt_app_version "3.2.12">]>
 
 <resources>
     <string name="txt_app_name" translatable="false">SCVA &txt_app_version;</string>
@@ -356,4 +356,7 @@
         <item>Beacon Mode</item>
     </string-array>
 
+    <string name="modem_service_selection">Modem service — waiting for or maintaining the chat selection</string>
+    <string name="display_gain">Display Gain</string>
+    <string name="contact_encryption_key">Contact encryption key</string>
 </resources>

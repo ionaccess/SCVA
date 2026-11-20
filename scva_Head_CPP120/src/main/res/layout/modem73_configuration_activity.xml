@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/complete_white"
+    android:orientation="vertical">
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/colorPrimary"
+        android:gravity="center_vertical"
+        android:stretchColumns="1">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginLeft="12dp"
+                android:visibility="invisible" />
+
+            <TextView
+                android:id="@+id/modem73Title"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="MODEM73 Configuration"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
+
+            <ImageView
+                android:id="@+id/save"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/save"
+                android:clickable="true"
+                android:contentDescription="Save configuration"
+                android:focusable="true" />
+        </TableRow>
+    </TableLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="15dp">
+
+            <TableLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/corner_gray_shadow"
+                android:shrinkColumns="1"
+                android:stretchColumns="1">
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/corner_gray_shadow">
+
+                    <TextView
+                        style="@style/AppTextView"
+                        android:layout_width="135dp"
+                        android:layout_height="45dp"
+                        android:layout_marginLeft="5dp"
+                        android:background="@color/transparent"
+                        android:gravity="center_vertical"
+                        android:text="Configuration name"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/configurationName"
+                        style="@style/AppEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="5dp"
+                        android:background="@color/transparent"
+                        android:gravity="center_vertical"
+                        android:inputType="textPersonName"
+                        android:singleLine="true"
+                        android:textColorHint="@color/edit_field_hint" />
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/corner_gray_shadow">
+
+                    <TextView
+                        style="@style/AppTextView"
+                        android:layout_width="135dp"
+                        android:layout_height="45dp"
+                        android:layout_marginLeft="5dp"
+                        android:background="@color/transparent"
+                        android:gravity="center_vertical"
+                        android:text="MODEM73 callsign"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/modem73Callsign"
+                        style="@style/AppEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="5dp"
+                        android:background="@color/transparent"
+                        android:gravity="center_vertical"
+                        android:hint="Default: SCVA"
+                        android:inputType="textPersonName"
+                        android:singleLine="true"
+                        android:textColorHint="@color/edit_field_hint" />
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:visibility="visible"
+                    android:background="@drawable/corner_gray_shadow">
+
+                    <TextView
+                        style="@style/AppTextView"
+                        android:layout_width="135dp"
+                        android:layout_height="50dp"
+                        android:layout_marginLeft="5dp"
+                        android:background="@color/transparent"
+                        android:gravity="center_vertical"
+                        android:text="Transmission profile"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <Spinner
+                        android:id="@+id/modem73Profile"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:spinnerMode="dropdown" />
+                </TableRow>
+            </TableLayout>
+
+            <TextView
+                android:id="@+id/profileDescription"
+                style="@style/AppTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="8dp"
+                android:paddingTop="8dp"
+                android:paddingRight="8dp"
+                android:paddingBottom="8dp"
+                android:textColor="@color/edit_field_text"
+                android:textSize="13sp" />
+
+            <Switch
+                android:id="@+id/voxEnabled"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/corner_gray_shadow"
+                android:minHeight="48dp"
+                android:paddingLeft="5dp"
+                android:text="Enable VOX"
+                android:textColor="@color/edit_field_text" />
+
+            <TextView
+                style="@style/AppTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="8dp"
+                android:text="VOX lead duration (milliseconds)"
+                android:textColor="@color/edit_field_text"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/voxLeadMs"
+                style="@style/AppEditText"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:background="@drawable/corner_gray_shadow"
+                android:inputType="number"
+                android:singleLine="true"
+                android:paddingLeft="5dp"
+                android:textColorHint="@color/edit_field_hint" />
+
+            <TextView
+                android:id="@+id/voxDescription"
+                style="@style/AppTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="6dp"
+                android:paddingBottom="8dp"
+                android:textColor="@color/edit_field_text"
+                android:textSize="13sp" />
+
+            <CheckBox
+                android:id="@+id/encryptionEnabled"
+                style="@style/AppCheckBox"
+                android:background="@drawable/corner_gray_shadow"
+                android:text="Enable encryption (SCVA peers only)"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/encryptionAlgorithm"
+                style="@style/AppTextViewWithBorder"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:background="@drawable/corner_gray_shadow"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:paddingLeft="10dp"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/contactEncryptionKey"
+                style="@style/AppTextViewWithBorder"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:background="@drawable/corner_gray_shadow"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:paddingLeft="10dp"
+                android:text="@string/contact_encryption_key"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/configurationDescription"
+                style="@style/AppTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/corner_gray_shadow"
+                android:paddingTop="8dp"
+                android:paddingBottom="12dp"
+                android:textColor="@color/edit_field_text"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

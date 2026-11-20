@@ -63,6 +63,26 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:text="GGWave local diagnostics" />
+
+            <Button
+                android:id="@+id/clearGgWaveLog"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Clear GGWave diagnostics" />
+
+            <TextView
+                android:id="@+id/ggWaveLogText"
+                style="@style/AppTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="8dp"
+                android:textIsSelectable="true" />
+
             <EditText
                 android:id="@+id/logText"
                 style="@style/AppTextView"

@@ -14,6 +14,18 @@ public class TextMessage implements Parcelable
     private String time = "";
     private boolean header = false;
     private boolean encrypted = false;
+    private String encryptionAlgorithm = "";
+    private String ciphertextFormat = "PLAINTEXT";
+    private int ciphertextVersion;
+    private String encryptionParameters = "";
+    public String getEncryptionAlgorithm() { return encryptionAlgorithm; }
+    public void setEncryptionAlgorithm(String value) { encryptionAlgorithm = value; }
+    public String getCiphertextFormat() { return ciphertextFormat; }
+    public void setCiphertextFormat(String value) { ciphertextFormat = value; }
+    public int getCiphertextVersion() { return ciphertextVersion; }
+    public void setCiphertextVersion(int value) { ciphertextVersion = value; }
+    public String getEncryptionParameters() { return encryptionParameters; }
+    public void setEncryptionParameters(String value) { encryptionParameters = value; }
     public static final int MY_TEXT = 0;
     public static final int HIS_TEXT = 1;
     public static final int MY_KEY = 2;
@@ -133,6 +145,10 @@ public class TextMessage implements Parcelable
 		dest.writeInt(this.contactId);
 		dest.writeString(this.date);
 		dest.writeString(this.message);
+		dest.writeString(this.encryptionAlgorithm);
+		dest.writeString(this.ciphertextFormat);
+		dest.writeInt(this.ciphertextVersion);
+		dest.writeString(this.encryptionParameters);
 	}
 
 	public TextMessage()
@@ -150,6 +166,10 @@ public class TextMessage implements Parcelable
 		this.contactId = in.readInt();
 		this.date = in.readString();
 		this.message = in.readString();
+		this.encryptionAlgorithm = in.readString();
+		this.ciphertextFormat = in.readString();
+		this.ciphertextVersion = in.readInt();
+		this.encryptionParameters = in.readString();
 	}
 
 	public static final Creator<TextMessage> CREATOR = new Creator<TextMessage>()

@@ -48,6 +48,7 @@ public class CustomizeImageActivity extends Activity implements View.OnClickList
 	private Bitmap bitmapToSend;
 
 	private String base64String;
+	private boolean compactPhoneImage;
 
 	private TextView timeRequired, progress, resolution;
 
@@ -56,6 +57,7 @@ public class CustomizeImageActivity extends Activity implements View.OnClickList
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.image_customization);
+		compactPhoneImage = getIntent().getBooleanExtra("modem73", false) || getIntent().getBooleanExtra("ggwave", false);
 
 		Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
 		intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -70,6 +72,11 @@ public class CustomizeImageActivity extends Activity implements View.OnClickList
 		timeRequired = findViewById(R.id.time_required);
 		useEnc = findViewById(R.id.useEnc);
 		useEnc.setOnCheckedChangeListener(this);
+		if (compactPhoneImage)
+		{
+			useEnc.setChecked(getIntent().getBooleanExtra("modem73Encrypted", false));
+			useEnc.setEnabled(false);
+		}
 
 		SeekBar seekBar = findViewById(R.id.seekBar);
 		seekBar.setOnSeekBarChangeListener(this);
@@ -86,9 +93,15 @@ public class CustomizeImageActivity extends Activity implements View.OnClickList
 	{
 		if (view == send)
 		{
+			if (selectedFile == null) return;
 			Intent intent = new Intent();
             intent.setData(selectedFile);
-            intent.putExtra("data", base64String);
+            if (!compactPhoneImage) intent.putExtra("data", base64String);
+            if (compactPhoneImage && bitmapToSend != null) intent.putExtra("modem73Side", Math.max(bitmapToSend.getWidth(), bitmapToSend.getHeight()));
+            if (compactPhoneImage && bitmapToSend != null) {
+                intent.putExtra("imageWidth", bitmapToSend.getWidth());
+                intent.putExtra("imageHeight", bitmapToSend.getHeight());
+            }
             intent.putExtra("imageEncryption", useEnc.isChecked());
             setResult(RESULT_OK, intent);
 			finish();
@@ -103,6 +116,7 @@ public class CustomizeImageActivity extends Activity implements View.OnClickList
 	@Override
 	public void onCheckedChanged(CompoundButton compoundButton, boolean b)
 	{
+		if (compactPhoneImage) return;
 		if (b)
 		{
 			totalBytes = (long) (utils.getBase64ImageSizeInKB(base64String) * 1024);
@@ -124,19 +138,27 @@ public class CustomizeImageActivity extends Activity implements View.OnClickList
 	@Override
 	public void onProgressChanged(SeekBar seekBar, int i, boolean b)
 	{
+		if (selectedFile == null || width == 0 || height == 0) return;
 		int progressValue = seekBar.getProgress();
 		progress.setText(progressValue + "%");
 
 		Size size = utils.downgradeByPercentage(width, height, i);
 		resolution.setText(size.getWidth() + " x " + size.getHeight());
 
-		bitmapToSend = utils.createThumbnailFromUri(CustomizeImageActivity.this, selectedFile, size.getWidth(), size.getHeight());
+		Bitmap selected = utils.createThumbnailFromUri(CustomizeImageActivity.this, selectedFile, size.getWidth(), size.getHeight());
+		if (selected == null) return;
+		bitmapToSend = compactPhoneImage ? Bitmap.createScaledBitmap(selected, size.getWidth(), size.getHeight(), true) : selected;
 		Drawable drawable = new BitmapDrawable(getResources(), bitmapToSend);
 
 		ImageView image = findViewById(R.id.image);
 		image.setBackground(drawable);
 
-		base64String = utils.bitmapToBase64(bitmapToSend);
+		base64String = compactPhoneImage ? null : utils.bitmapToBase64(bitmapToSend);
+		if (compactPhoneImage)
+		{
+			timeRequired.setText("Image size checked before sending");
+			return;
+		}
 
 		totalBytes = (long) (utils.getBase64ImageSizeInKB(base64String) * 1024);
 		double timeInSeconds = utils.getTimeRequired(totalBytes, rate);
@@ -167,11 +189,19 @@ public class CustomizeImageActivity extends Activity implements View.OnClickList
 			selectedFile = data.getData();
 			try
 			{
-				bitmapToSend = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedFile);
+				bitmapToSend = compactPhoneImage ? utils.createThumbnailFromUri(this, selectedFile, 96, 96)
+						: MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedFile);
 			}
 			catch (IOException e)
 			{
 				e.printStackTrace();
+			}
+			if (bitmapToSend == null) return;
+			if (compactPhoneImage && Math.max(bitmapToSend.getWidth(), bitmapToSend.getHeight()) > 96)
+			{
+				double ratio = 96.0 / Math.max(bitmapToSend.getWidth(), bitmapToSend.getHeight());
+				bitmapToSend = Bitmap.createScaledBitmap(bitmapToSend, Math.max(1, (int) Math.round(bitmapToSend.getWidth() * ratio)),
+						Math.max(1, (int) Math.round(bitmapToSend.getHeight() * ratio)), true);
 			}
 			Drawable drawable = new BitmapDrawable(getResources(), bitmapToSend);
 
@@ -180,7 +210,12 @@ public class CustomizeImageActivity extends Activity implements View.OnClickList
 			width = bitmapToSend.getWidth();
 			height = bitmapToSend.getHeight();
 			resolution.setText(width + " X " + height);
-			base64String = utils.bitmapToBase64(bitmapToSend);
+			base64String = compactPhoneImage ? null : utils.bitmapToBase64(bitmapToSend);
+			if (compactPhoneImage)
+			{
+				timeRequired.setText("Image size checked before sending");
+				return;
+			}
 
 			totalBytes = (long) (utils.getBase64ImageSizeInKB(base64String) * 1024);
 			double timeInSeconds = utils.getTimeRequired(totalBytes, rate);

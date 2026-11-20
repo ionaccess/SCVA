@@ -12,6 +12,8 @@ public class SCVADebug extends Application
 	{
 		super.onCreate();
 		GS.gI().setContext(this);
+		if (!GS.gI().getValue().contains("RSFEC_V2_ENABLED"))
+			GS.gI().getEditor().putBoolean("RSFEC_V2_ENABLED", true).apply();
 		if (GS.gI().getValue().getBoolean("SUGGESTED_CONFIG", true))
 		{
 			config.setSuggestedValues();

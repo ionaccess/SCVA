@@ -1,7 +1,10 @@
 package com.SCVA.activities;
 
+import java.util.ArrayList;
+
 import com.SCVA.Modem;
 import com.SCVA.R;
+import com.SCVA.Utils.Constants;
 import com.SCVA.Utils.GS;
 import com.SCVA.db.ConfigurationsDataSource;
 import com.SCVA.db.ContactsDataSource;
@@ -18,17 +21,16 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-
 /**
  * Created by §∞§ on 28/01/2026.
  */
-public class AddConfigurationActivity extends BaseActivity implements View.OnClickListener
+public class AddConfigurationActivity extends BaseActivity implements View.OnClickListener, CompoundButton.OnCheckedChangeListener
 {
 	private enum ActionType
 	{
@@ -40,7 +42,7 @@ public class AddConfigurationActivity extends BaseActivity implements View.OnCli
 	private Configuration configuration;
 	private ActionType actionType = ActionType.NEW;
 	private ImageView save;
-	private CheckBox afc, useEnc, txRsid, rxRsid;
+	private CheckBox afc, useEnc, txRsid, rxRsid, v2FecEnabled;
 	private TextView errorCorrection, encAlgoType;
 	private EditText name, description, frequency, audioGain, squelch;
 	private SettingsDataSource settingsDataSource;
@@ -80,13 +82,25 @@ public class AddConfigurationActivity extends BaseActivity implements View.OnCli
 		name = findViewById(R.id.name);
 		frequency = findViewById(R.id.frequency);
 
+		v2FecEnabled = findViewById(R.id.v2FecEnabled);
+		v2FecEnabled.setOnCheckedChangeListener(this);
 		errorCorrection = findViewById(R.id.errorCorrection);
 		errorCorrection.setOnClickListener(this);
 		if (actionType == ActionType.NEW)
 		{
 			configuration = new Configuration();
-			configuration.setrSErrorCorrection(isV2FecEnabled() ? "1" : "2");
-			errorCorrection.setText(getErrorNames()[getErrorIndex()]);
+			configuration.setName("New configuration");
+			configuration.setModulationType("THOR22");
+			configuration.setFrequency(1500);
+			configuration.setrSErrorCorrection("1");
+			configuration.setV2FecEnabled(true);
+			configuration.setEncryption(false);
+			configuration.setEncryptionType("aes");
+			configuration.setAudioGain(12);
+			configuration.setSquelch(30);
+			configuration.setAfc(false);
+			configuration.setrXRsID(false);
+			configuration.settXRsID(false);
 		}
 
 		audioGain = findViewById(R.id.audioGain);
@@ -99,18 +113,43 @@ public class AddConfigurationActivity extends BaseActivity implements View.OnCli
 		txRsid = findViewById(R.id.txrsid);
 
 		description = findViewById(R.id.description);
-
+		if (actionType == ActionType.NEW)
+		{
+			name.setText(configuration.getName());
+			frequency.setText(String.valueOf(configuration.getFrequency()));
+			audioGain.setText(String.valueOf(configuration.getAudioGain()));
+			squelch.setText(String.valueOf(configuration.getSquelch()));
+			description.setText("");
+			useEnc.setChecked(false);
+			afc.setChecked(false);
+			txRsid.setChecked(false);
+			rxRsid.setChecked(false);
+			((TextView) modulationType).setText("Use " + configuration.getModulationType());
+			v2FecEnabled.setChecked(configuration.isV2FecEnabled());
+			String[] fecNames = getResources().getStringArray(R.array.rsfec_v2_preset_names);
+			errorCorrection.setText(fecNames[getErrorIndex()]);
+			String[] algos = getResources().getStringArray(R.array.enc_algos);
+			encAlgoType.setText(algos[getAlgoIndex()]);
+		}
 		if (actionType == ActionType.EDIT)
 		{
 			configuration = getIntent().getParcelableExtra("OBJECT");
 			selectedContact = (Contact) getIntent().getParcelableExtra("CONTACT");
+			if (configuration.getId() == 9) configuration.setV2FecEnabled(false);
 
 			name.setText(configuration.getName());
 			description.setText(configuration.getDescription());
 			frequency.setText("" + configuration.getFrequency());
 
-			String[] names = getErrorNames();
-			errorCorrection.setText("" + names[getErrorIndex()]);
+			v2FecEnabled.setChecked(configuration.isV2FecEnabled());
+			// errorCorrection.setClickable(configuration.isV2FecEnabled());
+			String[] fecNames = getResources().getStringArray(R.array.rsfec_v2_preset_names);
+			errorCorrection.setText(fecNames[getErrorIndex()]);
+			if (configuration.getId() == 9)
+			{
+				v2FecEnabled.setChecked(false);
+				v2FecEnabled.setEnabled(false);
+			}
 			audioGain.setText("" + configuration.getAudioGain());
 			squelch.setText("" + configuration.getSquelch());
 			afc.setChecked(configuration.isAfc());
@@ -180,18 +219,47 @@ public class AddConfigurationActivity extends BaseActivity implements View.OnCli
 
 	private void saveEntry()
 	{
+		String selectedModem = configuration == null ? null : configuration.getModulationType();
+		if (v2FecEnabled.isChecked() && !isV2PassedModem(selectedModem))
+		{
+			String modemName = selectedModem == null || selectedModem.trim().isEmpty() ? "the selected modem" : selectedModem;
+			Toast.makeText(this, "V2 FEC is not supported for " + modemName + ". Disable V2 FEC or select a V2-supported modem.", Toast.LENGTH_LONG).show();
+			return;
+		}
+
 		if (actionType == ActionType.NEW)
 		{
 			configuration.setName(name.getText().toString());
-			// configuration.setContactId("" + selectedContact.getId());
+			if (configuration.getName().trim().length() == 0)
+			{
+				Toast.makeText(this, "Please enter a configuration name.", Toast.LENGTH_SHORT).show();
+				return;
+			}
 			configuration.setDescription(description.getText().toString());
-			long lastId = configurationsDataSource.create(configuration);
-			selectedContact.setId((int) lastId);
+			configuration.setFrequency(parseInt(frequency, 1500));
+			configuration.setAudioGain(parseInt(audioGain, 12));
+			configuration.setSquelch(parseInt(squelch, 30));
+			configuration.setEncryption(useEnc.isChecked());
+			configuration.setV2FecEnabled(v2FecEnabled.isChecked());
+			configuration.setAfc(afc.isChecked());
+			configuration.setrXRsID(rxRsid.isChecked());
+			configuration.settXRsID(txRsid.isChecked());
+			long configId = configurationsDataSource.create(configuration);
+			configuration.setId((int) configId);
 
 			Toast.makeText(this, "Saved.", Toast.LENGTH_SHORT).show();
 			// keys.setVisibility(View.VISIBLE);
 			keys.setVisibility(View.INVISIBLE);
 			// delete.setVisibility(View.VISIBLE);
+			if ("CONTACT".equalsIgnoreCase(getIntent().getStringExtra("TYPE")))
+			{
+				Intent result = new Intent();
+				result.putExtra("OBJECT", configuration);
+				setResult(Activity.RESULT_OK, result);
+				finish();
+			}
+			else
+				finish();
 		}
 		if (actionType == ActionType.EDIT)
 		{
@@ -201,6 +269,7 @@ public class AddConfigurationActivity extends BaseActivity implements View.OnCli
 			configuration.setFrequency(Integer.parseInt(frequency.getText().toString()));
 			// error correction
 			configuration.setEncryption(useEnc.isChecked());
+			configuration.setV2FecEnabled(v2FecEnabled.isChecked());
 			// enc algo
 			configuration.setAudioGain(Integer.parseInt(audioGain.getText().toString()));
 			configuration.setSquelch(Integer.parseInt(squelch.getText().toString()));
@@ -233,6 +302,16 @@ public class AddConfigurationActivity extends BaseActivity implements View.OnCli
 		}
 	}
 
+	private static boolean isV2PassedModem(String modemName)
+	{
+		if (modemName == null) return false;
+		for (String supportedModem : Constants.V2_PASSED_MODEMS)
+		{
+			if (supportedModem.equalsIgnoreCase(modemName)) return true;
+		}
+		return false;
+	}
+
 	public void showEncryptionTypes()
 	{
 		String[] names = getResources().getStringArray(R.array.enc_algos);
@@ -252,31 +331,29 @@ public class AddConfigurationActivity extends BaseActivity implements View.OnCli
 
 	public void showErrorCorrection()
 	{
-		String[] names = getErrorNames();
-		String[] values = getErrorValues();
-
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("Level of Error Mitigation").setNegativeButton("CANCEL", (dialog, which) -> {
+		String[] names = getResources().getStringArray(R.array.rsfec_v2_preset_names);
+		String[] values = getResources().getStringArray(R.array.rsfec_v2_preset_values);
+		new AlertDialog.Builder(this).setTitle("V2 FEC preset").setNegativeButton("CANCEL", (dialog, which) -> {
 		}).setSingleChoiceItems(names, getErrorIndex(), (dialog, which) -> {
-			((TextView) errorCorrection).setText("" + names[which]);
+			errorCorrection.setText(names[which]);
 			configuration.setrSErrorCorrection(values[which]);
 			dialog.dismiss();
-		});
-
-		AlertDialog dialog = builder.create();
-		dialog.show();
+		}).show();
 	}
 
 	public void showModes()
 	{
+		boolean v2Only = v2FecEnabled.isChecked();
 		if (GS.gI().getValue().getBoolean("USEMODELIST", false))
 		{
 			customModemsList = new ArrayList<>();
 			for (int i = 0; i < Modem.modemCapListString.length; i++)
 			{
-				if (GS.gI().getValue().getBoolean("USE" + Modem.modemCapListString[i], false))
+				String modemName = Modem.modemCapListString[i];
+				if (modemName != null && modemName.length() > 0 && GS.gI().getValue().getBoolean("USE" + modemName, false)
+						&& (!v2Only || isV2PassedModem(modemName)))
 				{
-					customModemsList.add(Modem.modemCapListString[i]);
+					customModemsList.add(modemName);
 				}
 			}
 			modNames = customModemsList.toArray(new String[0]);
@@ -286,19 +363,20 @@ public class AddConfigurationActivity extends BaseActivity implements View.OnCli
 			customModemsList = new ArrayList<>();
 			for (int i = 0; i < Modem.modemCapListString.length; i++)
 			{
-				if (Modem.modemCapListString[i].length() > 0) customModemsList.add(Modem.modemCapListString[i]);
+				String modemName = Modem.modemCapListString[i];
+				if (modemName != null && modemName.length() > 0 && (!v2Only || isV2PassedModem(modemName))) customModemsList.add(modemName);
 			}
-			customModemsList.remove(customModemsList.size() - 1);
+			if (!customModemsList.isEmpty() && "END".equals(customModemsList.get(customModemsList.size() - 1))) customModemsList.remove(customModemsList.size() - 1);
 			modNames = customModemsList.toArray(new String[0]);
 
 		}
+		modNames = customModemsList.toArray(new String[0]);
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setTitle("Modulation Type").setNegativeButton("CANCEL", (dialog, which) -> {
 		}).setSingleChoiceItems(modNames, getModulationIndex(), (dialog, which) -> {
 			((TextView) modulationType).setText("Use " + modNames[which]);
 			// GS.gI().getEditor().putString("LASTMODEUSED", "" + Modem.getMode(names[which])).apply();
 			configuration.setModulationType(modNames[which]);
-
 			dialog.dismiss();
 		});
 
@@ -306,30 +384,24 @@ public class AddConfigurationActivity extends BaseActivity implements View.OnCli
 		dialog.show();
 	}
 
-	public int getErrorIndex()
+	private static int parseInt(EditText field, int fallback)
 	{
-		int checkedIndex = 0;
-		String[] values = getErrorValues();
-		for (int i = 0; i < values.length; i++)
+		try
 		{
-			if (values[i].equalsIgnoreCase(configuration.getrSErrorCorrection())) checkedIndex = i;
+			return Integer.parseInt(field.getText().toString());
 		}
-		return checkedIndex;
+		catch (RuntimeException invalid)
+		{
+			return fallback;
+		}
 	}
 
-	private boolean isV2FecEnabled()
+	private int getErrorIndex()
 	{
-		return GS.gI().getValue().getBoolean("RSFEC_V2_ENABLED", false);
-	}
-
-	private String[] getErrorNames()
-	{
-		return getResources().getStringArray(isV2FecEnabled() ? R.array.rsfec_v2_preset_names : R.array.rsfec_p_levels_list);
-	}
-
-	private String[] getErrorValues()
-	{
-		return getResources().getStringArray(isV2FecEnabled() ? R.array.rsfec_v2_preset_values : R.array.rsfec_p_levels_values);
+		String[] values = getResources().getStringArray(R.array.rsfec_v2_preset_values);
+		for (int i = 0; i < values.length; i++)
+			if (values[i].equals(configuration.getrSErrorCorrection())) return i;
+		return 0;
 	}
 
 	public int getAlgoIndex()
@@ -353,6 +425,15 @@ public class AddConfigurationActivity extends BaseActivity implements View.OnCli
 			if (customModemsList.get(i).equalsIgnoreCase(configuration.getModulationType())) checkedIndex = i;
 		}
 		return checkedIndex;
+	}
+
+	@Override
+	public void onCheckedChanged(CompoundButton compoundButton, boolean b)
+	{
+		if (compoundButton == v2FecEnabled)
+		{
+			// errorCorrection.setClickable(b);
+		}
 	}
 
 	@Override

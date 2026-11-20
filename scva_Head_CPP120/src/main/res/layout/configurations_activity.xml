@@ -42,13 +42,24 @@
                 android:textSize="18sp" />
 
             <ImageView
+                android:id="@+id/addConfiguration"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:contentDescription="@string/add_configuration"
+                android:gravity="center"
+                android:src="@drawable/add_white"
+                android:visibility="gone" />
+
+            <ImageView
                 android:id="@+id/addEntry"
                 android:layout_width="25dp"
                 android:layout_height="25dp"
                 android:layout_marginLeft="15dp"
                 android:layout_marginRight="15dp"
-                android:src="@drawable/settings"
                 android:gravity="center"
+                android:src="@drawable/settings"
                 android:textSize="20sp" />
         </TableRow>
     </TableLayout>

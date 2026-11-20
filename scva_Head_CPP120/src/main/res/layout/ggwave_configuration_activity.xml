@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:orientation="vertical">
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/colorPrimary"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:shrinkColumns="1"
+        android:stretchColumns="1">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/keys"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="15dp"
+                android:background="@drawable/keys_icon_white"
+                android:contentDescription="Encryption keys"
+                android:gravity="center"
+                android:visibility="invisible" />
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#00000000"
+                android:gravity="center"
+                android:text="Configuration"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
+
+            <ImageView
+                android:id="@+id/save"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/save"
+                android:contentDescription="Save configuration"
+                android:gravity="center"
+                android:visibility="visible" />
+        </TableRow>
+    </TableLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="15dp">
+
+            <TableLayout
+                android:id="@+id/ggWaveEditor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/corner_gray_shadow"
+                android:orientation="horizontal"
+                android:shrinkColumns="1"
+                android:stretchColumns="1">
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/corner_gray_shadow">
+
+                    <TextView
+                        style="@style/AppTextView"
+                        android:layout_width="120dp"
+                        android:layout_height="45dp"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:gravity="center_vertical"
+                        android:text="Name:"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/ggConfigName"
+                        style="@style/AppEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:ems="5"
+                        android:gravity="center_vertical"
+                        android:inputType="textPersonName"
+                        android:textColorHint="@color/edit_field_hint" />
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/corner_gray_shadow">
+
+                    <TextView
+                        style="@style/AppTextView"
+                        android:layout_width="120dp"
+                        android:layout_height="45dp"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:gravity="center_vertical"
+                        android:text="Description:"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/ggConfigDescription"
+                        style="@style/AppEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:ems="5"
+                        android:gravity="center_vertical"
+                        android:inputType="textPersonName"
+                        android:textColorHint="@color/edit_field_hint" />
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/corner_gray_shadow">
+
+                    <TextView
+                        style="@style/AppTextView"
+                        android:layout_width="180dp"
+                        android:layout_height="45dp"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:gravity="center_vertical"
+                        android:text="Transmit protocol"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/ggConfigSpeed"
+                        style="@style/AppTextViewWithBorder"
+                        android:layout_width="match_parent"
+                        android:layout_height="45dp"
+                        android:layout_marginLeft="5dp"
+                        android:background="@color/transparent"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="10dp"
+                        android:text="DT Fastest"
+                        android:textSize="14sp" />
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/corner_gray_shadow">
+
+                    <TextView
+                        style="@style/AppTextView"
+                        android:layout_width="180dp"
+                        android:layout_height="45dp"
+                        android:layout_marginLeft="5dp"
+                        android:background="#00000000"
+                        android:gravity="center_vertical"
+                        android:text="Receive protocols"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/ggConfigReceiveProtocols"
+                        style="@style/AppTextViewWithBorder"
+                        android:layout_width="match_parent"
+                        android:layout_height="45dp"
+                        android:layout_marginLeft="5dp"
+                        android:background="@color/transparent"
+                        android:ellipsize="end"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="10dp"
+                        android:singleLine="true"
+                        android:text="DT Fastest"
+                        android:textSize="14sp" />
+                </TableRow>
+
+                <CheckBox
+                    android:id="@+id/ggConfigEncryption"
+                    style="@style/AppCheckBox"
+                    android:background="@drawable/corner_gray_shadow"
+                    android:text="@string/use_encryption"
+                    android:textStyle="bold" />
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/corner_gray_shadow">
+
+                    <TextView
+                        style="@style/AppTextView"
+                        android:layout_width="120dp"
+                        android:layout_height="45dp"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="10dp"
+                        android:text="@string/encryption_algorithm"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/ggConfigEncryptionType"
+                        style="@style/AppTextViewWithBorder"
+                        android:layout_width="match_parent"
+                        android:layout_height="45dp"
+                        android:background="@color/transparent"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="10dp"
+                        android:text="AES (256 bit)"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+                </TableRow>
+            </TableLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

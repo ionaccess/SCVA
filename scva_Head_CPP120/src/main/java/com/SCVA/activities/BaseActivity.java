@@ -9,6 +9,7 @@ import android.widget.TextView;
 import com.SCVA.R;
 import com.SCVA.Utils.Constants;
 import com.SCVA.Utils.Utils;
+import com.SCVA.Utils.WhatsAppHelper;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -33,7 +34,7 @@ public class BaseActivity extends AppCompatActivity
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN, WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
 
 		if (!Constants.devMode) errorLogToFile(this);
-		// ((TextView) findViewById(R.id.actions)).setText("Crash");
+//		 ((TextView) findViewById(R.id.actions)).setText("Crash");
 	}
 
 	@Override
@@ -56,8 +57,8 @@ public class BaseActivity extends AppCompatActivity
 					ex.printStackTrace(new PrintWriter(errors));
 					// return errors.toString();
 					Utils.println(errors.toString());
-					Utils.crashToFile(getString(R.string.txt_app_name), errors.toString());
-					// WhatsAppHelper.sendTextMessage(BaseActivity.this, Constants.logNumber, errors.toString());
+					Utils.crashToFile( getString(R.string.txt_app_name), errors.toString());
+					WhatsAppHelper.sendTextMessage(BaseActivity.this, errors.toString());
 				}
 				catch (Exception e)
 				{

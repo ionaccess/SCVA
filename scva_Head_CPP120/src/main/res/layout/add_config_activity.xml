@@ -162,7 +162,7 @@
 
                     <TextView
                         android:id="@+id/modulationType"
-                        style="@style/AppEditText"
+                        style="@style/AppTextViewWithBorder"
                         android:layout_width="match_parent"
                         android:layout_height="45dp"
                         android:background="@color/transparent"
@@ -213,22 +213,22 @@
                     android:layout_height="45dp"
                     android:background="@drawable/corner_gray_shadow">
 
-                    <TextView
-                        style="@style/AppTextView"
+                    <CheckBox
+                        android:id="@+id/v2FecEnabled"
                         android:layout_width="120dp"
                         android:layout_height="45dp"
                         android:layout_marginLeft="5dp"
                         android:background="#00000000"
                         android:gravity="center_vertical"
-                        android:text="Error Correction"
-                        android:textColorHint="@color/edit_field_text"
+                        android:text="V2 FEC"
+                        android:textColor="@color/edit_field_text"
                         android:textSize="15sp"
                         android:textStyle="bold" />
 
 
                     <TextView
                         android:id="@+id/errorCorrection"
-                        style="@style/AppEditText"
+                        style="@style/AppTextViewWithBorder"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_marginLeft="5dp"
@@ -243,6 +243,7 @@
                     android:id="@+id/thirdViewg"
                     android:layout_width="match_parent"
                     android:layout_height="45dp"
+                    android:visibility="gone"
                     android:background="@drawable/corner_gray_shadow">
 
                     <TextView
@@ -299,7 +300,7 @@
 
                     <TextView
                         android:id="@+id/encAlgoType"
-                        style="@style/AppEditText"
+                        style="@style/AppTextViewWithBorder"
                         android:layout_width="match_parent"
                         android:layout_height="45dp"
                         android:background="@color/transparent"
@@ -324,7 +325,7 @@
                         android:layout_marginLeft="5dp"
                         android:background="#00000000"
                         android:gravity="center_vertical"
-                        android:text="Audio Gain"
+                        android:text="@string/display_gain"
                         android:textColorHint="@color/edit_field_text"
                         android:textSize="15sp"
                         android:textStyle="bold" />

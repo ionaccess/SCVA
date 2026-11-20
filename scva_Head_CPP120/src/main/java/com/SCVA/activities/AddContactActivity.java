@@ -223,11 +223,13 @@ public class AddContactActivity extends BaseActivity implements View.OnClickList
 
 	private void deleteEntry()
 	{
+        try { new MessagesDataSource(this).requireMessageMetadataSchema(); }
+        catch(com.SCVA.db.SqliteHelper.UnsupportedMessageSchemaException unsupported) {Toast.makeText(this,unsupported.getMessage(),Toast.LENGTH_LONG).show();return;}
 		int contactId = selectedContact.getId();
 		if (contactsDataSource.delete(selectedContact))
 		{
-			new KeysDataSource(this).deleteUserKeys(contactId);
 			new MessagesDataSource(this).deleteUserMessages(contactId);
+			new KeysDataSource(this).deleteUserKeys(contactId);
 			new ChatsDataSource(this).deleteChatAgainstContactId(contactId);
 
 			Toast.makeText(this, "Contact deleted.", Toast.LENGTH_LONG).show();
@@ -247,6 +249,38 @@ public class AddContactActivity extends BaseActivity implements View.OnClickList
 		{
 			Toast.makeText(this, "Please select a configuration to proceed.", Toast.LENGTH_SHORT).show();
 			return;
+		}
+		boolean phoneConfig = tmpConfig != null && ("GGWave".equals(tmpConfig.getModulationType()) || "MODEM73".equals(tmpConfig.getModulationType()));
+		if (phoneConfig && tmpConfig.getId() == 9)
+		{
+			Toast.makeText(this, "Configuration 9 is reserved for AndFlmsg and cannot use Phone Modems.", Toast.LENGTH_LONG).show();
+			return;
+		}
+		if (tmpConfig != null && "MODEM73".equals(tmpConfig.getModulationType()))
+		{
+			String call=tmpConfig.getModem73Callsign();
+			if (tmpConfig.isEncryption() && !com.SCVA.Modem73Crypto.supports(tmpConfig.getEncryptionType()) || call == null || !call.matches("(?i)(?=.*[A-Z0-9/])[A-Z0-9/ ]{1,9}"))
+			{
+				Toast.makeText(this, "Edit MODEM73 configuration with a valid callsign and supported encryption settings before assigning it.", Toast.LENGTH_LONG).show();
+				return;
+			}
+		}
+		if (!phoneConfig && tmpConfig.isV2FecEnabled())
+		{
+			String selectedModem = tmpConfig.getModulationType();
+			boolean passed = false;
+			for (String modem : Constants.V2_PASSED_MODEMS)
+			{
+				if (modem.equals(selectedModem)) passed = true;
+			}
+			if (!passed)
+			{
+				String modemName = selectedModem == null || selectedModem.length() == 0 ? "Unknown modem" : selectedModem;
+				Toast.makeText(this, "V2 FEC is enabled for this configuration, but " + modemName + " has not passed V2 integration. "
+						+ "Change the configuration modem to " + android.text.TextUtils.join(", ", Constants.V2_PASSED_MODEMS)
+						+ ", or turn off V2 FEC in that configuration.", Toast.LENGTH_LONG).show();
+				return;
+			}
 		}
 		if (actionType == ActionType.NEW)
 		{

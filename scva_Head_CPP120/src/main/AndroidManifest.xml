@@ -151,6 +151,19 @@
             android:theme="@style/AppTheme" />
 
         <activity
+            android:name=".activities.GGWaveConfigurationActivity"
+            android:exported="true"
+            android:label="GGWave Configuration"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme" />
+
+        <activity
+            android:name=".activities.Modem73ConfigurationActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme" />
+
+        <activity
             android:name=".activities.AddKeyActivity"
             android:exported="true"
             android:label="Add Key"

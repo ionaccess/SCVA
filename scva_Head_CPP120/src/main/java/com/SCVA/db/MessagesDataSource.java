@@ -3,6 +3,7 @@ package com.SCVA.db;
 import java.util.ArrayList;
 
 import com.SCVA.Utils.Utils;
+import com.SCVA.MessageEncryptionMetadata;
 import com.SCVA.models.Contact;
 import com.SCVA.models.TextMessage;
 
@@ -28,14 +29,21 @@ public class MessagesDataSource extends SqliteHelper
 	public static String ENCRYPTED = "encrypted";
 
 	public static String TYPE = "type";
+    public static final String ENCRYPTION_ALGORITHM="encryptionAlgorithm", CIPHERTEXT_FORMAT="ciphertextFormat",
+            CIPHERTEXT_VERSION="ciphertextVersion", ENCRYPTION_PARAMETERS="encryptionParameters";
 
 	public MessagesDataSource(Context context)
 	{
 		super(context);
 	}
 
-	public void create(TextMessage item)
+    @Override public android.database.sqlite.SQLiteDatabase openDataBase() throws java.sql.SQLException {
+        requireMessageMetadataSchema();return super.openDataBase();
+    }
+	public long create(TextMessage item)
 	{
+        requireMessageMetadataSchema();
+		MessageEncryptionMetadata.validateStored(item);
 		ContentValues values = new ContentValues();
 		values.put(DATE, item.getDate());
 		values.put(TYPE, item.getType());
@@ -43,11 +51,21 @@ public class MessagesDataSource extends SqliteHelper
 		values.put(MESSAGE, item.getMessage());
 		values.put(ENCRYPTED, item.isEncrypted());
 		values.put(CONTACT_ID, item.getContactId());
-		create(TABLE_NAME, values);
+        putEncryptionMetadata(values,item);
+		long id;
+        try { id=insertSensitive(TABLE_NAME, values); } finally { close(); }
+        if(id<=0)throw new IllegalStateException("Message history storage failed");
+        item.setId((int)id);return id;
 	}
+    private static void putEncryptionMetadata(ContentValues values,TextMessage item) {
+        values.put(ENCRYPTION_ALGORITHM,item.getEncryptionAlgorithm());values.put(CIPHERTEXT_FORMAT,item.getCiphertextFormat());
+        values.put(CIPHERTEXT_VERSION,item.getCiphertextVersion());values.put(ENCRYPTION_PARAMETERS,item.getEncryptionParameters());
+    }
 
 	public boolean update(TextMessage item)
 	{
+        requireMessageMetadataSchema();
+		MessageEncryptionMetadata.validateStored(item);
 		ContentValues values = new ContentValues();
 		values.put(DATE, item.getDate());
 		values.put(TYPE, item.getType());
@@ -56,9 +74,10 @@ public class MessagesDataSource extends SqliteHelper
 		values.put(MESSAGE, item.getMessage());
 		values.put(ENCRYPTED, item.isEncrypted());
 		values.put(CONTACT_ID, item.getContactId());
+        putEncryptionMetadata(values,item);
 
 		String whereClause = "id = " + item.getId();
-		return update(TABLE_NAME, values, whereClause);
+		try { return update(TABLE_NAME, values, whereClause); } finally { close(); }
 	}
 
 	public boolean delete(TextMessage item)
@@ -105,16 +124,23 @@ public class MessagesDataSource extends SqliteHelper
 				data.setMessage(cursor.getString(cursor.getColumnIndex(MESSAGE)));
 				data.setContactId(cursor.getInt(cursor.getColumnIndex(CONTACT_ID)));
 				data.setEncrypted(cursor.getInt(cursor.getColumnIndex(ENCRYPTED)) == 1);
+                data.setEncryptionAlgorithm(cursor.getString(cursor.getColumnIndexOrThrow(ENCRYPTION_ALGORITHM)));
+                data.setCiphertextFormat(cursor.getString(cursor.getColumnIndexOrThrow(CIPHERTEXT_FORMAT)));
+                data.setCiphertextVersion(cursor.getInt(cursor.getColumnIndexOrThrow(CIPHERTEXT_VERSION)));
+                data.setEncryptionParameters(cursor.getString(cursor.getColumnIndexOrThrow(ENCRYPTION_PARAMETERS)));
 
 				list.add(data);
 			}
 			cursor.close();
 		}
+		catch (UnsupportedMessageSchemaException e)
+		{
+			close();throw e;
+		}
 		catch (Exception e)
 		{
 			close();
-			e.printStackTrace();
-			Utils.println("Exception: " + e);
+			throw new IllegalStateException("Message history could not be read",e);
 		}
 		close();
 		return list;

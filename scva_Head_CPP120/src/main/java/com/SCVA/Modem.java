@@ -47,7 +47,6 @@ import com.SCVA.Interfaces.CallBack;
 import com.SCVA.Interfaces.ProcessorCallBack;
 import com.SCVA.Utils.Constants;
 import com.SCVA.Utils.GS;
-import com.SCVA.Utils.TruSDXAudio;
 import com.SCVA.Utils.Utils;
 import com.SCVA.activities.UserChatActivity;
 
@@ -95,7 +94,7 @@ public class Modem
 	// Semaphore for waterfall (new array of amplitudes needed for display)
 	// Is now also accessed from the c++ native side in rsid.cxx
 	public static boolean newAmplReady = false;
-	public static boolean stopTX = false;
+	public static volatile boolean stopTX = false;
 
 	// The following value MUST Match the MAXMODES in modem.h
 	public static final int MAXMODES = 300;
@@ -128,7 +127,10 @@ public class Modem
 	public static boolean afcOn;
 
 	// JD debug
-	private static boolean CModemInitialized = false;
+	private static volatile boolean CModemInitialized = false;
+	private static volatile boolean receiveReady;
+	private static volatile boolean phoneBackendActive;
+	static boolean isRadioInitialized() { return CModemInitialized && receiveReady; }
 
 	// Mfsk picture
 	public static int picBuffer[];
@@ -174,15 +176,19 @@ public class Modem
 
 	public static boolean isV2Selected()
 	{
-		return config.getPreferenceB("RSFEC", false) && config.getPreferenceB("RSFEC_V2_ENABLED", false);
+		return !phoneBackendActive && config.getPreferenceB("RSFEC_V2_ENABLED", true);
 	}
 
 	public static boolean isV2ModemSupported()
 	{
+		if (phoneBackendActive) return false;
 		try
 		{
 			int mode = getCurrentMode();
-			return mode == getMode("THOR22") || mode == getMode("THOR50x1");
+			for (String modem : Constants.V2_PASSED_MODEMS)
+			{
+				if (mode == getMode(modem)) return true;
+			}
 		}
 		catch (Exception e)
 		{
@@ -241,7 +247,7 @@ public class Modem
 		}
 	}
 	private static volatile boolean v2TxQueued;
-	public static void sendV2Bytes(byte[] data)
+	static void sendV2Bytes(byte[] data)
 	{
 		sendV2Bytes(data, 0);
 	}
@@ -249,20 +255,20 @@ public class Modem
 	private static synchronized void sendV2Bytes(byte[] data, int type)
 	{
 		if (GS.gI().isTXActive() || v2TxQueued || GS.gI().getDCDthrow() != 0) throw new IllegalStateException("Transmitter busy");
-		if (!isV2Selected() || !isV2ModemSupported()) throw new IllegalStateException("Select V2 Experimental and THOR22 or THOR50x1 first");
+		if (!isV2Selected() || !isV2ModemSupported()) throw new IllegalStateException("Select V2 Experimental and " + android.text.TextUtils.join(", ", Constants.V2_PASSED_MODEMS) + " first");
 		if (data == null || data.length == 0 || data.length > 4096) throw new IllegalArgumentException("V2 messages must contain 1–4096 bytes");
 		TxThread worker = new TxThread("", "", "", 0, 0, false, "");
 		worker.txBinary = data.clone();
 		worker.txBinaryType = type;
 		v2TxQueued = true;
 		pauseRxModem();
-		new Thread(worker, "SCVA-V2-TX").start();
+		startTransmitWorker(worker, "SCVA-V2-TX");
 	}
 
-	public static void sendV2Diagnostic(int sequence)
+	static void sendV2Diagnostic(int sequence)
 	{
 		if (!isV2Selected()) throw new IllegalStateException("Enable V2 FEC to send a V2 diagnostic message");
-		if (!isV2ModemSupported()) throw new IllegalStateException("V2 currently supports THOR22 or THOR50x1 only");
+		if (!isV2ModemSupported()) throw new IllegalStateException("V2 currently supports " + android.text.TextUtils.join(", ", Constants.V2_PASSED_MODEMS) + " only");
 		String number = String.format(java.util.Locale.US, "%03d", Math.max(1, sequence));
 		String text = "SCVA V2 RADIO TEST #" + number + "\n\n" + "Mode: current V2 modem\nFEC: V2 Balanced \n\n" + "If you can read this complete message,\n"
 				+ "the V2 data link is working correctly.\n\n" + "ABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789";
@@ -270,9 +276,9 @@ public class Modem
 		sendV2Bytes(text.getBytes(java.nio.charset.StandardCharsets.UTF_8), 1);
 	}
 
-	public static void sendReadableRadioTest(int sequence)
+	static void sendReadableRadioTest(int sequence)
 	{
-		if (!isV2ModemSupported()) throw new IllegalStateException("Readable radio test currently supports THOR22 or THOR50x1 only");
+		if (!isV2ModemSupported()) throw new IllegalStateException("Readable radio test currently supports " + android.text.TextUtils.join(", ", Constants.V2_PASSED_MODEMS) + " only");
 		String number = String.format(java.util.Locale.US, "%03d", Math.max(1, sequence));
 		String text = "SCVA RADIO TEST #" + number + "\n\nMode: current V2 modem\nType: Plain Text\n\n" + "If you can read this message,\nthe THOR radio link is working.\n\n"
 				+ "ABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789";
@@ -287,7 +293,7 @@ public class Modem
 		worker.txPlain = true;
 		v2TxQueued = true;
 		pauseRxModem();
-		new Thread(worker, "SCVA-PLAIN-THOR-TX").start();
+		startTransmitWorker(worker, "SCVA-PLAIN-THOR-TX");
 	}
 
 	private native static void saveEnv();
@@ -341,7 +347,7 @@ public class Modem
 					if (sample8 > 255) sample8 = 255;
 					usbBuffer[i] = (byte) sample8;
 				}
-				TruSDXAudio.getInstance().writeAudio(usbBuffer);
+//				TruSDXAudio.getInstance().writeAudio(usbBuffer);
 			}
 			res = txAt.write(outSBuffer, 0, length);
 			if (res < 0) Utils.println("Error in writing sound buffer: " + res, null, true);
@@ -893,6 +899,8 @@ public class Modem
 		int ii = 20; // number of 1/4 seconds wait
 		while (--ii > 0)
 		{
+			checkRadioAdmission();
+			releaseReceiveAudio(); // Release a failed initialization before retrying.
 			audiorecorder = new AudioRecord(AudioSource.MIC, 8000, android.media.AudioFormat.CHANNEL_IN_MONO, android.media.AudioFormat.ENCODING_PCM_16BIT, bufferSize);
 			if (audiorecorder.getState() == AudioRecord.STATE_INITIALIZED)
 			{
@@ -928,10 +936,128 @@ public class Modem
 		}
 	}
 
-	public static void startModem()
+	// Protected by Modem.class for launch/stop; visible to workers without that lock.
+	private static volatile boolean radioStopping = true;
+	private static volatile boolean audioReleaseFailed;
+	private native static void disposeRadioNative();
+	private native static void setPhoneBackendActiveNative(boolean active);
+
+	/** Closes legacy modem/FEC JNI entry points while Processor owns a Phone backend. */
+	static void setPhoneBackendActive(boolean active)
 	{
+		setPhoneBackendActiveNative(active);
+		phoneBackendActive = active;
+	}
+
+	static synchronized void beginRadioLifetime()
+	{
+		if (hasReceiveWorker() || hasTransmitWorker()) throw new IllegalStateException("Previous Radio workers are still active");
+		radioStopping = false;
+		audioReleaseFailed = false;
+		stopTX = false;
+		RxON = false;
+		modemThreadOn = false;
+		GS.gI().getRestartRxModem().drainPermits();
+	}
+
+	private static void checkRadioAdmission()
+	{
+		if (phoneBackendActive) throw new IllegalStateException("Radio operations are unavailable while a Phone Modem is selected");
+		if (radioStopping) throw new IllegalStateException("Radio is stopping");
+	}
+
+	static synchronized void requestRadioStop()
+	{
+		radioStopping = true; // Close launches before cancellation/wake.
+		stopTX = true;
+		stopRxModem();
+		GS.gI().getRestartRxModem().release();
+		if (receiveWorker != null) receiveWorker.interrupt();
+	}
+
+	// Called only by Processor's cleanup worker, never while holding its control lock.
+	static boolean awaitRadioWorkers(long timeoutMillis) throws InterruptedException
+	{
+		Thread rx, tx;
+		synchronized (Modem.class) { rx = receiveWorker; tx = transmitWorker; }
+		long deadline = System.nanoTime() + timeoutMillis * 1000000L;
+		for (Thread worker : new Thread[] { rx, tx })
+		{
+			if (worker == Thread.currentThread()) throw new IllegalStateException("Cannot join Radio worker from itself");
+			if (worker == null) continue;
+			if (timeoutMillis == 0) worker.join();
+			else
+			{
+				long remaining = deadline - System.nanoTime();
+				if (remaining > 0) worker.join(Math.max(1, remaining / 1000000L));
+			}
+			if (worker.isAlive()) return false;
+		}
+		return true;
+	}
+
+	static synchronized void finishRadioStop()
+	{
+		if (!radioStopping || hasReceiveWorker() || hasTransmitWorker() || audioReleaseFailed) throw new IllegalStateException("Radio is not quiescent");
+		disposeRadioNative();
+		receiveWorker = null;
+		transmitWorker = null;
+		CModemInitialized = false;
+		receiveReady = false;
+		modemState = RXMODEMIDLE;
+		v2TxQueued = false;
+		FirstBracketReceived = false; BlockString = ""; WrapLF = false; lastCharacterTime = 0;
+		MonitorString = "";
+		GS.gI().setReceivingForm(false); GS.gI().setCrcString(""); GS.gI().setFileNameString("");
+		frequency = 0; bandwidth = 0; metric = 0;
+		callBack = null;
+		processorCallBack = null;
+		GS.gI().getRestartRxModem().drainPermits();
+	}
+
+	private static void releaseReceiveAudio()
+	{
+		AudioRecord recorder = audiorecorder;
+		audiorecorder = null;
+		if (recorder == null) return;
+		try
+		{
+			if (recorder.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) recorder.stop();
+		}
+		finally
+		{
+			try { recorder.release(); }
+			catch (RuntimeException failure) { audiorecorder = recorder; audioReleaseFailed = true; throw failure; }
+		}
+	}
+
+	private static void releaseShutdownPtt()
+	{
+		if (radioStopping) com.SCVA.Utils.TruSDXCat.getInstance().pttOff();
+	}
+
+	private static Thread receiveWorker;
+	private static Thread transmitWorker;
+
+	static synchronized boolean hasReceiveWorker() { return receiveWorker != null && receiveWorker.isAlive(); }
+	static synchronized boolean canStartReceiveWorker() { return receiveWorker == null || !receiveWorker.isAlive() && modemState == RXMODEMIDLE; }
+	static synchronized boolean hasTransmitWorker() { return transmitWorker != null && transmitWorker.isAlive(); }
+	static synchronized boolean isTransmitWorkerThread() { return Thread.currentThread() == transmitWorker; }
+	private static synchronized void startTransmitWorker(Runnable work, String name)
+	{
+		checkRadioAdmission();
+		if (hasTransmitWorker()) throw new IllegalStateException("Transmitter busy");
+		transmitWorker = name == null ? new Thread(work) : new Thread(work, name);
+		transmitWorker.start();
+	}
+
+	static synchronized void startModem()
+	{
+		checkRadioAdmission();
+		if (!canStartReceiveWorker()) throw new IllegalStateException("Radio receive shutdown is not confirmed");
 		modemThreadOn = true;
-		new Thread(new Runnable()
+		modemState = RXMODEMSTARTING;
+		receiveWorker = new Thread(new Runnable()
 		{
 			public void run()
 			{
@@ -939,7 +1065,9 @@ public class Modem
 				// GUI and modem)
 				Process.setThreadPriority(Process.THREAD_PRIORITY_FOREGROUND);
 
-				while (modemThreadOn)
+				try
+				{
+				while (modemThreadOn && !radioStopping)
 				{
 					// Save Environment for this thread so it can call back
 					// Java methods while in C++
@@ -947,10 +1075,14 @@ public class Modem
 
 					String rsidReturnedString;
 					String modemReturnedString;
+					receiveReady = false;
 					modemState = RXMODEMSTARTING;
 					double startproctime = 0;
 					double endproctime = 0;
 					int numSamples8K = 0;
+					if (radioStopping) return;
+					try
+					{
 					Modem.soundInInit();
 					// debugging only
 					// Message.addEntryToLog(Message.dateTimeStamp() + "Done
@@ -960,7 +1092,7 @@ public class Modem
 					{
 						// Catch un-initialized audio recorder
 						audiorecorder.startRecording();
-						RxON = true;
+						RxON = !radioStopping;
 					}
 					catch (IllegalStateException e)
 					{
@@ -980,6 +1112,7 @@ public class Modem
 					// Message.addEntryToLog(Message.dateTimeStamp() + "About to
 					// do 'createCModem'
 					// with Modem" + Processor.RxModem);
+					if (radioStopping) return;
 					String modemCreateResult = createCModem(GS.gI().getRxModem());
 					// debugging only
 					// Message.addEntryToLog(Message.dateTimeStamp() + "Done
@@ -1003,6 +1136,7 @@ public class Modem
 						// Limit it's values too
 						if (centerfreq > 2500) centerfreq = 2500;
 						if (centerfreq < 500) centerfreq = 500;
+						if (radioStopping) return;
 						String modemInitResult = initCModem(centerfreq);
 						// debugging only
 						// Message.addEntryToLog(Message.dateTimeStamp() + "Done
@@ -1043,6 +1177,7 @@ public class Modem
 
 						if (numSamples8K > 0)
 						{
+							receiveReady = CModemInitialized;
 							modemState = RXMODEMRUNNING;
 							startproctime = System.currentTimeMillis();
 							// Process only if Rx is ON, otherwise discard (we
@@ -1129,18 +1264,8 @@ public class Modem
 						}
 					} // while (RxON)
 						// We dropped here on pause flag
-					if (audiorecorder != null)
-					{
-						// Avoid some crashes on wrong state
-						if (audiorecorder.getState() == AudioRecord.STATE_INITIALIZED)
-						{
-							if (audiorecorder.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING)
-							{
-								audiorecorder.stop();
-							}
-							audiorecorder.release();
-						}
 					}
+					finally { releaseReceiveAudio(); }
 					modemState = RXMODEMPAUSED;
 					// Marker for end of thread (Stop modem thread flag)
 					if (!modemThreadOn)
@@ -1149,29 +1274,39 @@ public class Modem
 						return;
 					}
 					// Now waits for a restart (or having this thread killed)
-					GS.gI().getRestartRxModem().acquireUninterruptibly(1);
+					try { GS.gI().getRestartRxModem().acquire(); }
+					catch (InterruptedException interrupted) { if (radioStopping) return; }
+					if (radioStopping) return;
 					// Make sure we don's have spare permits
 					GS.gI().getRestartRxModem().drainPermits();
 				} // while (modemThreadOn)
 					// We dropped here on thread stop request
-				modemState = RXMODEMIDLE;
+				}
+				finally
+				{
+					receiveReady = false;
+					modemState = RXMODEMIDLE;
+				}
 			} // run
-		}).start(); // new Thread(new Runnable() {
+		});
+		receiveWorker.start();
 	}
 
-	public static void stopRxModem()
+	static void stopRxModem()
 	{
 		modemThreadOn = false;
 		RxON = false;
 	}
 
-	public static void pauseRxModem()
+	static void pauseRxModem()
 	{
+		if (phoneBackendActive) return;
 		RxON = false;
 	}
 
-	public static void unPauseRxModem()
+	static synchronized void unPauseRxModem()
 	{
+		if (radioStopping || phoneBackendActive) return;
 		GS.gI().getRestartRxModem().release(1);
 	}
 
@@ -1184,13 +1319,15 @@ public class Modem
 
 	}
 
-	public static void setFrequency(double rxfreq)
+	static void setFrequency(double rxfreq)
 	{
+		checkRadioAdmission();
 		frequency = rxfreq;
 	}
 
 	public static void setAfc(boolean b)
 	{
+		checkRadioAdmission();
 		afcOn = b;
 		setAfcOnOff(afcOn);
 	}
@@ -1201,6 +1338,11 @@ public class Modem
 		frequency = Integer.parseInt(frequencySTR);
 		if (frequency < 500) frequency = 500;
 		if (frequency > 2500) frequency = 2500;
+		reloadSquelch();
+	}
+
+	static void reloadSquelch()
+	{
 		squelch = GS.gI().getValue().getFloat("SQUELCHVALUE", (float) 20.0);
 	}
 
@@ -1405,12 +1547,12 @@ public class Modem
 	}
 
 	// In a separate thread so that the UI thread is not blocked during TX
-	public static void txData(String sendingFolder, String sendingFileName, String Sendline, int numberOfImagesToTx, int pictureTxSpeed, Boolean pictureColour,
+	static void txData(String sendingFolder, String sendingFileName, String Sendline, int numberOfImagesToTx, int pictureTxSpeed, Boolean pictureColour,
 			String pictureTxMode)
 	{
 		Runnable TxRun = new TxThread(sendingFolder, sendingFileName, Sendline, numberOfImagesToTx, pictureTxSpeed, pictureColour, pictureTxMode);
 		Sendline = "";
-		new Thread(TxRun).start();
+		startTransmitWorker(TxRun, null);
 		pauseRxModem();
 	}
 
@@ -1444,6 +1586,7 @@ public class Modem
 			try
 			{
 
+				checkRadioAdmission();
 				if ((txSendline.length() > 0 || txBinary != null) && !GS.gI().isTXActive())
 				{
 					if (GS.gI().getDCDthrow() == 0)
@@ -1451,9 +1594,9 @@ public class Modem
 						try
 						{
 							if (isV2Selected() && (!isV2ModemSupported() || txNumberOfImagesToTx > 0))
-								throw new IllegalStateException("V2 Experimental requires THOR22 or THOR50x1; image attachments are not supported");
+								throw new IllegalStateException("V2 Experimental requires " + android.text.TextUtils.join(", ", Constants.V2_PASSED_MODEMS) + "; image attachments are not supported");
 							// Reset the stop flag if it was ON
-							Modem.stopTX = false;
+							synchronized (Modem.class) { checkRadioAdmission(); Modem.stopTX = false; }
 							// Set flags to TXing
 							GS.gI().setTXActive(true);
 							GS.gI().setStatus(GS.gI().getContext().getString(R.string.txt_Transmitting));
@@ -1480,6 +1623,7 @@ public class Modem
 							// Open and initialise the sound system
 							// Android check the the buffer siz
 							int intSize = 4 * android.media.AudioTrack.getMinBufferSize(8000, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
+							checkRadioAdmission();
 							txAt = new AudioTrack(AudioManager.STREAM_MUSIC, 8000, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, intSize, AudioTrack.MODE_STREAM);
 							// Launch TX
 							txAt.setStereoVolume(1.0f, 1.0f);
@@ -1493,8 +1637,9 @@ public class Modem
 							// Java methods while in C++
 							Modem.saveEnv();
 							// Init current modem for Tx
+							checkRadioAdmission();
 							Modem.txInit(frequency);
-							if (txRsidOn)
+							if (txRsidOn && !radioStopping)
 							{
 								Modem.txRSID();
 							}
@@ -1513,6 +1658,7 @@ public class Modem
 								// Invalid UTF-8 characters
 								bytesToSend[0] = 0;// Null character
 							}
+							checkRadioAdmission();
 							boolean sent = txBinary != null ? Modem.txV2CProcess(bytesToSend, bytesToSend.length, txBinaryType)
 									: txPlain ? Modem.txPlainCProcess(bytesToSend, bytesToSend.length) : Modem.txCProcess(bytesToSend, bytesToSend.length);
 							if (!sent)
@@ -1523,7 +1669,7 @@ public class Modem
 							// Save current mode in case we change it for images Tx
 							// int currentMode = Processor.RxModem;
 							// Is there a picture/signature to send after the text?
-							if (txNumberOfImagesToTx > 0)
+							if (txNumberOfImagesToTx > 0 && !radioStopping)
 							{
 								// Change to the selected MFSK mode
 								int modemCode = Modem.getMode("MFSK32");
@@ -1541,7 +1687,7 @@ public class Modem
 								// Message.addEntryToLog(Message.dateTimeStamp() +
 								// "Done 'changeCModem' with
 								// modem # " + modemCode);
-								for (int i = 0; i < txNumberOfImagesToTx; i++)
+								for (int i = 0; i < txNumberOfImagesToTx && !radioStopping; i++)
 								{
 									if (Message.attachedPictureArray[i] != null && Message.attachedPictureWidth[i] > 0 && Message.attachedPictureHeight[i] > 0)
 									{
@@ -1597,7 +1743,7 @@ public class Modem
 							}
 							// Send TX RSID if required
 							// Check and send post-transmission RSID
-							if (txRsidOn && config.getPreferenceB("TXPOSTRSID", false))
+							if (!radioStopping && txRsidOn && config.getPreferenceB("TXPOSTRSID", false))
 							{
 								Modem.txRSID();
 								// debugging only
@@ -1680,6 +1826,7 @@ public class Modem
 								}
 								catch (RuntimeException ignored)
 								{
+									audioReleaseFailed = true;
 								}
 								txAt = null;
 							}
@@ -1706,16 +1853,17 @@ public class Modem
 					v2TxQueued = false;
 					if (!GS.gI().isTXActive()) unPauseRxModem();
 				}
+				releaseShutdownPtt();
 			}
 		}
 	};
 
 	// Send Tune in a separate thread so that the UI thread is not blocked
 	// during TX
-	public static void TxTune()
+	static void TxTune()
 	{
 		Runnable TxTuneRun = new TxTuneThread();
-		new Thread(TxTuneRun).start();
+		startTransmitWorker(TxTuneRun, null);
 	}
 
 	private static class TxTuneThread implements Runnable
@@ -1728,6 +1876,9 @@ public class Modem
 
 		public void run()
 		{
+			try
+			{
+			checkRadioAdmission();
 			// Let the regular title update kno we are just tuning, not
 			// transmitting a
 			// document
@@ -1747,6 +1898,7 @@ public class Modem
 			{
 				e1.printStackTrace();
 			}
+			checkRadioAdmission();
 			GS.gI().setTXActive(true);
 			processorCallBack.post("updateTitle", "");
 
@@ -1757,6 +1909,7 @@ public class Modem
 
 			// Note the multiplier value for the buffer size
 			int intSize = 4 * android.media.AudioTrack.getMinBufferSize(8000, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
+			checkRadioAdmission();
 			at = new AudioTrack(AudioManager.STREAM_MUSIC, 8000, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, intSize, AudioTrack.MODE_STREAM);
 
 			// Open audiotrack
@@ -1771,7 +1924,7 @@ public class Modem
 			double phase = 0.0;
 			phaseincr = 2.0 * Math.PI * frequency / sr;
 
-			for (int i = 0; i < 3; i++)
+			for (int i = 0; i < 3 && !radioStopping; i++)
 			{ // 3 seconds tune
 				for (int j = 0; j < symlen; j++)
 				{
@@ -1798,11 +1951,23 @@ public class Modem
 			}
 			// Close audio track
 			at.release();
+			at = null;
+			}
+			finally
+			{
+			try { if (at != null) at.release(); }
+			catch (RuntimeException failure) { audioReleaseFailed = true; throw failure; }
+			finally
+			{
+			at = null;
 			GS.gI().setTXActive(false);
 			// Restart the modem receiving side
 			unPauseRxModem();
 			modemIsTuning = false;
-			processorCallBack.post("updateTitle", "");
+			try { processorCallBack.post("updateTitle", ""); }
+			finally { releaseShutdownPtt(); }
+			}
+			}
 		}
 	};
 

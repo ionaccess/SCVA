@@ -5,15 +5,15 @@
         android:id="@+id/ency_edittext"
         android:layout="@layout/header" />
 
-        <Preference
-            android:id="@+id/legacy_app"
-            android:defaultValue=""
-            android:key="legacy_app"
-            android:title="Launch Legacy App" />
+    <Preference
+        android:id="@+id/legacy_app"
+        android:defaultValue=""
+        android:key="legacy_app"
+        android:title="Launch Legacy App" />
 
     <CheckBoxPreference
         android:buttonTint="@color/colorPrimary"
-        android:defaultValue="false"
+        android:defaultValue="true"
         android:drawableTint="@color/colorPrimary"
         android:key="USEMODELIST"
         android:title="@string/pref_UseCustomListOfModes" />
@@ -40,7 +40,7 @@
             android:defaultValue="12"
             android:inputType="number"
             android:key="BUTTONTEXTSIZE"
-            android:title="@string/pref_ButtonTextSize"/>
+            android:title="@string/pref_ButtonTextSize" />
 
     </PreferenceScreen>
 
@@ -78,79 +78,24 @@
             android:title="@string/pref_ModesSpecificSettings">
             <PreferenceScreen
                 android:key="rsFECPS"
-                android:title="@string/pref_RSFEC">
-                <CheckBoxPreference
-                    android:defaultValue="false"
-                    android:key="RSFEC"
-                    android:title="@string/pref_EnableRSFEC" />
-                <CheckBoxPreference
-                    android:key="RSFEC_V2_ENABLED"
-                    android:defaultValue="false"
-                    android:dependency="RSFEC"
-                    android:title="V2 FEC"
-                    android:summary="V2 FEC: OFF" />
+                android:title="V2 Reed-Solomon FEC">
                 <ListPreference
-                    android:dependency="RSFEC_V2_ENABLED"
                     android:entries="@array/rsfec_v2_preset_names"
                     android:entryValues="@array/rsfec_v2_preset_values"
                     android:key="RSFEC_V2_PRESET"
                     android:title="V2 TX FEC preset" />
                 <CheckBoxPreference
+                    android:defaultValue="false"
                     android:key="RSFEC_V2_DEBUG"
-                    android:defaultValue="false"
-                    android:dependency="RSFEC"
                     android:title="@string/rsfec_v2_debug" />
-                <Preference android:key="RSFEC_V2_TEST"
-                    android:dependency="RSFEC"
-                    android:title="Send V2 FEC Test"
-                    android:summary="@string/rsfec_v2_test_summary" />
-                <Preference android:key="RSFEC_READABLE_TEST"
-                    android:dependency="RSFEC"
-                    android:title="Send Readable Radio Test"
-                    android:summary="Plain THOR22 text readable by fldigi; does not test V2 FEC." />
-                <ListPreference
-                    android:defaultValue="31"
-                    android:dependency="RSFEC"
-                    android:entries="@array/rsfec_blocklengths"
-                    android:entryValues="@array/rsfec_blocklengths"
-                    android:key="RSFEC_BLOCKLENGTH"
-                    android:summary="@string/pref_RSFECBlockLengthSummary"
-                    android:title="@string/pref_RSFECBlockLength" />
-                <ListPreference
-                    android:defaultValue="2"
-                    android:dependency="RSFEC"
-                    android:entries="@array/rsfec_levels_list"
-                    android:entryValues="@array/rsfec_levels_values"
-                    android:key="RSFEC_LEVEL"
-                    android:title="@string/pref_RSFECLevel" />
-                <EditTextPreference
-                    android:defaultValue="START"
-                    android:dependency="RSFEC"
-                    android:key="RSFEC_STARTSEQUENCE"
-                    android:title="@string/pref_RSFECStartSequence" />
-                <EditTextPreference
-                    android:defaultValue="STOP"
-                    android:dependency="RSFEC"
-                    android:key="RSFEC_STOPSEQUENCE"
-                    android:title="@string/pref_RSFECStopSequence" />
-                <EditTextPreference
-                    android:defaultValue="BURN"
-                    android:dependency="RSFEC"
-                    android:key="RSFEC_BURNSTRING"
-                    android:title="@string/pref_RSFECBurnString" />
-                <CheckBoxPreference
-                    android:defaultValue="false"
-                    android:dependency="RSFEC"
-
-                    android:key="RSFEC_DEBUG"
-                    android:title="@string/pref_RSFECDebug" />
-                <EditTextPreference
-                    android:defaultValue="0"
-                    android:dependency="RSFEC_DEBUG"
-                    android:inputType="number"
-                    android:key="RSFEC_ERRORINJECTION"
-                    android:summary="@string/pref_RSFECErrorInjectionSummary"
-                    android:title="@string/pref_RSFECErrorInjection" />
+                <Preference
+                    android:key="RSFEC_V2_TEST"
+                    android:summary="@string/rsfec_v2_test_summary"
+                    android:title="Send V2 FEC Test" />
+                <Preference
+                    android:key="RSFEC_READABLE_TEST"
+                    android:summary="Plain THOR22 text readable by fldigi; does not test V2 FEC."
+                    android:title="Send Readable Radio Test" />
             </PreferenceScreen>
 
             <PreferenceScreen
@@ -385,6 +330,26 @@
     </PreferenceScreen>
 
     <PreferenceScreen
+        android:key="ggwaveDiagnosticsPS"
+        android:title="GGWave diagnostics">
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="GGWAVE_DIAGNOSTICS"
+            android:summary="Writes bounded local stage and error metadata."
+            android:title="Enable GGWave diagnostics" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dependency="GGWAVE_DIAGNOSTICS"
+            android:key="GGWAVE_LOG_CONTENT"
+            android:summary="Requires diagnostics. May include plaintext and decrypted text."
+            android:title="Include message contents" />
+        <Preference
+            android:key="GGWAVE_LOG_VIEW"
+            android:summary="Stored locally; never uploaded or shared automatically."
+            android:title="View or clear GGWave log" />
+    </PreferenceScreen>
+
+    <PreferenceScreen
         android:key="imageattachmentPS"
         android:title="@string/pref_IMAGEATTACHMENT">
         <EditTextPreference
@@ -506,7 +471,6 @@
     <Preference
         android:id="@+id/beginner_mode"
         android:defaultValue="false"
-        android:key="beginner_mode"
-         />
+        android:key="beginner_mode" />
 
 </PreferenceScreen>

@@ -44,6 +44,13 @@ public class ConfigurationsDataSource extends SqliteHelper
 	private String MODULATION_TYPE = "modulationType";
 
 	public String RS_ERROR_CORRECTION = "rSErrorCorrection";
+	public String V2_FEC_ENABLED = "v2FecEnabled";
+	public String GGWAVE_SPEED = "ggWaveSpeed";
+	public String GGWAVE_RX_PROTOCOLS = "ggWaveRxProtocols";
+	public String MODEM73_CALLSIGN = "modem73Callsign";
+	public String MODEM73_PROFILE = "modem73Profile";
+	public String MODEM73_VOX_ENABLED = "modem73VoxEnabled";
+	public String MODEM73_VOX_LEAD_MS = "modem73VoxLeadMs";
 
 	public String RXRSID = "RXRSID";
 
@@ -75,6 +82,13 @@ public class ConfigurationsDataSource extends SqliteHelper
 		values.put(MODULATION_TYPE, item.getModulationType());
 		values.put(ENCRYPTION_TYPE, item.getEncryptionType());
 		values.put(RS_ERROR_CORRECTION, item.getrSErrorCorrection());
+		values.put(V2_FEC_ENABLED, item.isV2FecEnabled());
+		values.put(GGWAVE_SPEED, item.getGgWaveSpeed());
+		values.put(GGWAVE_RX_PROTOCOLS, item.getGgWaveRxProtocols());
+		values.put(MODEM73_CALLSIGN, item.getModem73Callsign());
+		values.put(MODEM73_PROFILE, item.getModem73Profile());
+		values.put(MODEM73_VOX_ENABLED, item.isModem73VoxEnabled());
+		values.put(MODEM73_VOX_LEAD_MS, item.getModem73VoxLeadMs());
 		return create(TABLE_NAME, values);
 	}
 
@@ -96,6 +110,13 @@ public class ConfigurationsDataSource extends SqliteHelper
 		values.put(MODULATION_TYPE, item.getModulationType());
 		values.put(ENCRYPTION_TYPE, item.getEncryptionType());
 		values.put(RS_ERROR_CORRECTION, item.getrSErrorCorrection());
+		values.put(V2_FEC_ENABLED, item.isV2FecEnabled());
+		values.put(GGWAVE_SPEED, item.getGgWaveSpeed());
+		values.put(GGWAVE_RX_PROTOCOLS, item.getGgWaveRxProtocols());
+		values.put(MODEM73_CALLSIGN, item.getModem73Callsign());
+		values.put(MODEM73_PROFILE, item.getModem73Profile());
+		values.put(MODEM73_VOX_ENABLED, item.isModem73VoxEnabled());
+		values.put(MODEM73_VOX_LEAD_MS, item.getModem73VoxLeadMs());
 
 		String whereClause = "id = " + item.getId();
 		return update(TABLE_NAME, values, whereClause);
@@ -158,6 +179,20 @@ public class ConfigurationsDataSource extends SqliteHelper
 				data.setEncryptionType(cursor.getString(cursor.getColumnIndex(ENCRYPTION_TYPE)));
 				data.setModulationType(cursor.getString(cursor.getColumnIndex(MODULATION_TYPE)));
 				data.setrSErrorCorrection(cursor.getString(cursor.getColumnIndex(RS_ERROR_CORRECTION)));
+				int v2FecColumn = cursor.getColumnIndex(V2_FEC_ENABLED);
+				data.setV2FecEnabled(v2FecColumn >= 0 ? cursor.getInt(v2FecColumn) == 1 : true);
+				int speedColumn = cursor.getColumnIndex(GGWAVE_SPEED);
+				data.setGgWaveSpeed(speedColumn >= 0 ? cursor.getString(speedColumn) : "DT_FASTEST");
+				int rxProtocolsColumn = cursor.getColumnIndex(GGWAVE_RX_PROTOCOLS);
+				data.setGgWaveRxProtocols(rxProtocolsColumn >= 0 ? cursor.getString(rxProtocolsColumn) : null);
+				int callsignColumn = cursor.getColumnIndex(MODEM73_CALLSIGN);
+				data.setModem73Callsign(callsignColumn >= 0 ? cursor.getString(callsignColumn) : "");
+				int profileColumn = cursor.getColumnIndex(MODEM73_PROFILE);
+				data.setModem73Profile(profileColumn >= 0 ? cursor.getString(profileColumn) : "OFDM_QPSK_1_2_NORMAL");
+				int voxEnabledColumn = cursor.getColumnIndex(MODEM73_VOX_ENABLED);
+				data.setModem73VoxEnabled(voxEnabledColumn >= 0 && cursor.getInt(voxEnabledColumn) == 1);
+				int voxLeadColumn = cursor.getColumnIndex(MODEM73_VOX_LEAD_MS);
+				data.setModem73VoxLeadMs(voxLeadColumn >= 0 ? cursor.getInt(voxLeadColumn) : 550);
 
 				list.add(data);
 			}
@@ -166,6 +201,7 @@ public class ConfigurationsDataSource extends SqliteHelper
 		catch (Exception e)
 		{
 			close();
+			if (e instanceof IllegalStateException && e.getMessage() != null && e.getMessage().startsWith("Configuration schema migration failed")) throw (IllegalStateException) e;
 			e.printStackTrace();
 			Utils.println("Exception: " + e);
 		}

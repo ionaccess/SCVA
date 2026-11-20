@@ -34,13 +34,20 @@
 #include <algorithm>    // std::shuffle
 #include "rs_decode_checked.h"
 #include "v2_fec/AndroidBridge.h"
+#include "V2ModemWrapper.h"
 #include <random>       // std::default_random_engine
+#include <mutex>
+#include <atomic>
 #include <chrono>       // std::chrono::system_clock
 
 using std::string;
 
 cRsId *RsidModem = NULL;
 modem *active_modem = NULL;
+static std::atomic<bool> gPhoneBackendActive(false);
+// UI metadata/manual calls cannot race full-stop disposal. Worker processing is
+// quiesced by the Java owner before disposal; this is not a DSP processing lock.
+static std::mutex radioMetadataMutex;
 //@! Moved the following declaration
 rs_fft_type aFFTAmpl[RSID_FFT_SIZE] = {0};
 //@! Added the following declaration
@@ -308,106 +315,26 @@ extern void makeToast(string message) {
 static bool isV2SupportedThorMode() {
     return active_modem &&
            (active_modem->get_mode() == MODE_THOR22 ||
-            active_modem->get_mode() == MODE_THOR50x1);
+            active_modem->get_mode() == MODE_THOR50x1 ||
+            active_modem->get_mode() == MODE_THOR50x2 ||
+            active_modem->get_mode() == MODE_THOR8 ||
+            active_modem->get_mode() == MODE_THOR100 ||
+            active_modem->get_mode() == MODE_PSK31 ||
+            active_modem->get_mode() == MODE_PSK125 ||
+            active_modem->get_mode() == MODE_PSK500 ||
+            active_modem->get_mode() == MODE_MFSK8 ||
+            active_modem->get_mode() == MODE_MFSK32 ||
+            active_modem->get_mode() == MODE_MFSK64 ||
+            active_modem->get_mode() == MODE_MFSK128);
 }
 
 extern void put_rx_char(int receivedChar, bool fromRSID) {
-    if (scva_v2::receiveCharacter(receivedChar, fromRSID)) return;
-    if (!getPreferenceB("RSFEC", false) || fromRSID) {
-        put_utf8_char(receivedChar);
-
-        rxCodewordIndex = 0;
-        startSequenceIndex = 0;
-    } else {
-        if (getPreferenceB("RSFEC_DEBUG", false)) {
-            static char hexChars[16] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B',
-                                        'C', 'D', 'E', 'F'};
-            if (isprint(receivedChar)) {
-                decodedBuffer[lastCharPos++] = receivedChar;
-            } else {
-                decodedBuffer[lastCharPos++] = '<';
-                decodedBuffer[lastCharPos++] = hexChars[(receivedChar & 0xF0) >> 4];
-                decodedBuffer[lastCharPos++] = hexChars[receivedChar & 0x0F];
-                decodedBuffer[lastCharPos++] = '>';
-            }
-        }
-        //Reed-Solomon FEC Decode
-        if (receivedChar == startSequence[startSequenceIndex]) {
-            startSequenceIndex++;
-        } else {
-            startSequenceIndex = 0;
-        }
-        if (startSequenceIndex >= startSequence.length()) {
-            if (codewordReceiving && rxCodewordIndex > 0) {
-                makeToast("Invalid Codeword");
-            }
-            startSequenceIndex = 0;
-            rxCodewordIndex = 0;
-            rxCodeword.clear();
-            rxCodeword.resize(getPreferenceI("RSFEC_BLOCKLENGTH", 31) + stopSequence.length());
-            codewordReceiving = true;
-            return;
-        }
-        if (codewordReceiving) {
-            rxCodeword[rxCodewordIndex++] = receivedChar;
-        }
-        //__android_log_print(ANDROID_LOG_VERBOSE, "rsFECDecode", "rxCodeword[%d]: %x, %c\n", rxCodewordIndex, receivedChar, receivedChar);
-
-//        // 1. Create a safe buffer for the formatted text
-//        char buffer[128];
-//
-//// 2    //. Extract the byte cleanly as an unsigned integer to prevent sign extension
-//        unsigned char safeChar = (unsigned char)receivedChar;
-//
-//// 3    //. Format WITHOUT using %c (which creates the illegal UTF-8 byte)
-//// W    //e print the character index, its hex value, and its integer value instead.
-//        std::snprintf(buffer, sizeof(buffer), "rxCodeword[%d]: 0x%02X (dec: %d)\n",
-//                      rxCodewordIndex,
-//                      safeChar,
-//                      safeChar);
-//
-//// 4    //. Send the perfectly safe C++ string to makeToast
-//        std::string toastMessage(buffer);
-//        makeToast(toastMessage);
-
-        char buffer[128];
-
-        // If the character falls out of normal ASCII bounds, clean it up for the string renderer
-        char safePrintChar = (receivedChar >= 32 && receivedChar <= 126) ? receivedChar : '?';
-
-        std::snprintf(buffer, sizeof(buffer), "%c",
-//                      rxCodewordIndex,  //[%d]: 0x%02x,
-//                      (unsigned char)receivedChar,
-                      safePrintChar);
-
-        std::string toastMessage(buffer);
-        makeToast(toastMessage);
-
-
-        if (rxCodewordIndex >= getPreferenceI("RSFEC_BLOCKLENGTH", 31) + stopSequence.length()) {
-            bool validCodeword = true;
-            for (int i = 0; i < stopSequence.length(); i++) {
-                if (rxCodeword[getPreferenceI("RSFEC_BLOCKLENGTH", 31) + i] != stopSequence[i]) {
-                    validCodeword = false;
-                }
-            }
-            if (!validCodeword) {
-                makeToast("Invalid Codeword");
-            } else {
-                rxCodeword.resize(getPreferenceI("RSFEC_BLOCKLENGTH", 31));
-                if (rsFECDecode()) {
-                    for (int i = 0; i < rxCodeword.size(); i++) {
-                        put_utf8_char(rxCodeword[i]);
-                    }
-                } else {
-                    makeToast("RS decode failed; block discarded");
-                }
-            }
-            rxCodewordIndex = 0;
-            rxCodeword.clear();
-            codewordReceiving = false;
-        }
-    }
+    if (scva_v2_modem::receiveCharacter(receivedChar, fromRSID)) return;
+    // V2 is the only Radio FEC transport. With it disabled, use plain text;
+    // never fall back to the obsolete legacy RS framing/parser.
+    put_utf8_char(receivedChar);
+    rxCodewordIndex = 0;
+    startSequenceIndex = 0;
 }
 
 void put_utf8_char(int receivedChar) {
@@ -654,6 +581,7 @@ Java_com_SCVA_Modem_saveEnv(JNIEnv *env, jclass thishere) {
 extern "C" JNIEXPORT void
 Java_com_SCVA_Modem_changeCModem(JNIEnv *env, jclass thishere, jint modemCode,
                                  jdouble newFrequency) {
+    if (gPhoneBackendActive.load()) return;
     gEnv = env;
 
     //change_CModem(modemCode, active_modem->get_freq()); //Same frequency as previous modem
@@ -664,6 +592,7 @@ Java_com_SCVA_Modem_changeCModem(JNIEnv *env, jclass thishere, jint modemCode,
 //Creates the RSID receive Modem
 extern "C" JNIEXPORT jstring
 Java_com_SCVA_Modem_createRsidModem(JNIEnv *env, jclass thishere) {
+    if (gPhoneBackendActive.load()) return env->NewStringUTF("ERROR: RSID is unavailable for Phone Modems");
     //Save environment if we need to call the preference methods in Java
     gEnv = env;
     gJobject = thishere;
@@ -756,6 +685,7 @@ Java_com_SCVA_Modem_getModemCapListInt(JNIEnv *env, jclass thishere) {
 extern "C" JNIEXPORT jstring
 Java_com_SCVA_Modem_createCModem(JNIEnv *env, jclass thishere,
                                  jint modemCode) {
+    if (gPhoneBackendActive.load()) return env->NewStringUTF("ERROR: Radio modem unavailable while Phone Modem is selected");
     //Save environment if we need to call the preference methods in Java
     gEnv = env;
     gJobject = thishere;
@@ -791,6 +721,7 @@ Java_com_SCVA_Modem_createCModem(JNIEnv *env, jclass thishere,
 extern "C" JNIEXPORT jstring
 Java_com_SCVA_Modem_initCModem(JNIEnv *env, jclass thishere,
                                jdouble frequency) {
+    if (gPhoneBackendActive.load()) return env->NewStringUTF("ERROR: Radio modem unavailable while Phone Modem is selected");
     //Save environment if we need to call the preference methods in Java
     gEnv = env;
     gJobject = thishere;
@@ -816,6 +747,7 @@ Java_com_SCVA_Modem_initCModem(JNIEnv *env, jclass thishere,
 extern "C" JNIEXPORT jstring
 Java_com_SCVA_Modem_rxCProcess(JNIEnv *env, jclass thishere,
                                jshortArray myjbuffer, jint length) {
+    if (gPhoneBackendActive.load()) return env->NewStringUTF("");
     //Save environment if we need to call any methods in Java
     gEnv = env;
     gJobject = thishere;
@@ -825,9 +757,8 @@ Java_com_SCVA_Modem_rxCProcess(JNIEnv *env, jclass thishere,
     //Convert to C++ type
     jshort *shortBuffer = env->GetShortArrayElements(myjbuffer, 0);
 
-    if (scva_v2::configureReceive(env, thishere,
-                                  getPreferenceB("RSFEC", false) &&
-                                  getPreferenceB("RSFEC_V2_ENABLED", false),
+    if (scva_v2_modem::configureReceive(env, thishere,
+                                  getPreferenceB("RSFEC_V2_ENABLED", true),
                                   isV2SupportedThorMode(),
                                   getPreferenceB("RSFEC_V2_DEBUG", false))) {
         rxCodeword.clear();
@@ -835,10 +766,6 @@ Java_com_SCVA_Modem_rxCProcess(JNIEnv *env, jclass thishere,
         startSequenceIndex = 0;
         codewordReceiving = false;
     }
-
-    //Update RSFEC Start and Stop Sequence
-    startSequence = getPreferenceS("RSFEC_STARTSEQUENCE", "START");
-    stopSequence = getPreferenceS("RSFEC_STOPSEQUENCE", "STOP");
 
     //Process the buffer in C++
     if (active_modem != NULL) {
@@ -868,6 +795,8 @@ Java_com_SCVA_Modem_rxCProcess(JNIEnv *env, jclass thishere,
 extern "C" JNIEXPORT jint
 Java_com_SCVA_Modem_setSquelchLevel(JNIEnv *env, jclass thishere,
                                     jdouble squelchLevel) {
+    if (gPhoneBackendActive.load()) return 0;
+    std::lock_guard<std::mutex> guard(radioMetadataMutex);
     if (active_modem != NULL) {
         active_modem->set_squelchLevel(squelchLevel);
     }
@@ -878,6 +807,7 @@ Java_com_SCVA_Modem_setSquelchLevel(JNIEnv *env, jclass thishere,
 //Returns the latest signal metric from the current modem in C++
 extern "C" JNIEXPORT jdouble
 Java_com_SCVA_Modem_getMetric(JNIEnv *env, jclass thishere) {
+    std::lock_guard<std::mutex> guard(radioMetadataMutex);
     double metric = 0.0;
     if (active_modem != NULL) {
         metric = active_modem->get_metric();
@@ -889,6 +819,8 @@ Java_com_SCVA_Modem_getMetric(JNIEnv *env, jclass thishere) {
 extern "C" JNIEXPORT jstring
 Java_com_SCVA_Modem_RsidCModemReceive(JNIEnv *env, jclass thishere,
                                       jfloatArray myfbuffer, jint length, jboolean doSearch) {
+    if (gPhoneBackendActive.load()) return env->NewStringUTF("");
+    if (!RsidModem) return env->NewStringUTF("ERROR: RSID unavailable");
     //Save environment if we need to call any methods in Java
     gEnv = env;
     gJobject = thishere;
@@ -912,19 +844,22 @@ Java_com_SCVA_Modem_RsidCModemReceive(JNIEnv *env, jclass thishere,
 //Returns the current modem frequency (for waterfall tracking after RSID)
 extern "C" JNIEXPORT jdouble
 Java_com_SCVA_Modem_getCurrentFrequency(JNIEnv *env, jclass thishere) {
+    std::lock_guard<std::mutex> guard(radioMetadataMutex);
     //@! Changed from active_modem->get_freq() to active_modem->frequency
-    return active_modem->frequency;
+    return active_modem ? active_modem->frequency : 0.0;
 }
 
 //Returns the current modem bandwidth (for waterfall tracking after RSID)
 extern "C" JNIEXPORT jdouble
 Java_com_SCVA_Modem_getCurrentBandwidth(JNIEnv *env, jclass thishere) {
-    return active_modem->get_bandwidth();
+    std::lock_guard<std::mutex> guard(radioMetadataMutex);
+    return active_modem ? active_modem->get_bandwidth() : 0.0;
 }
 
 //Returns the current mode (for updating the Java side)
 extern "C" JNIEXPORT jint
 Java_com_SCVA_Modem_getCurrentMode(JNIEnv *env, jclass thishere) {
+    std::lock_guard<std::mutex> guard(radioMetadataMutex);
     if (active_modem == NULL) return -1;
     return active_modem->get_mode();
 }
@@ -933,7 +868,8 @@ Java_com_SCVA_Modem_getCurrentMode(JNIEnv *env, jclass thishere) {
 //Returns the decoded characters resulting from the flushing of the rx pipe on RSID rx of new modem
 extern "C" JNIEXPORT jint
 Java_com_SCVA_Modem_getFlushedRxCharacters(JNIEnv *env, jclass thishere) {
-    return active_modem->get_mode();
+    std::lock_guard<std::mutex> guard(radioMetadataMutex);
+    return active_modem ? active_modem->get_mode() : -1;
 }
 
 
@@ -946,6 +882,7 @@ Java_com_SCVA_Modem_getFlushedRxCharacters(JNIEnv *env, jclass thishere) {
 //Send RSID of current mode
 extern "C" JNIEXPORT void
 Java_com_SCVA_Modem_txRSID(JNIEnv *env, jclass thishere) {
+    if (gPhoneBackendActive.load()) return;
     //Save environment if we need to call any methods in Java
     gEnv = env;
     gJobject = thishere;
@@ -960,6 +897,7 @@ Java_com_SCVA_Modem_txRSID(JNIEnv *env, jclass thishere) {
 extern "C" JNIEXPORT jstring
 Java_com_SCVA_Modem_txInit(JNIEnv *env, jclass thishere,
                            jdouble frequency) {
+    if (gPhoneBackendActive.load()) return env->NewStringUTF("ERROR: Radio modem unavailable while Phone Modem is selected");
     //Save environment if we need to call any methods in Java
     gEnv = env;
     gJobject = thishere;
@@ -981,23 +919,26 @@ Java_com_SCVA_Modem_txInit(JNIEnv *env, jclass thishere,
 // Dedicated binary V2 entry: no String/UTF8/signed data-sentinel conversion.
 extern "C" JNIEXPORT jboolean
 Java_com_SCVA_Modem_txV2CProcess(JNIEnv *env, jclass cls, jbyteArray data, jint length, jint type) {
+    if (gPhoneBackendActive.load()) return JNI_FALSE;
     gEnv = env;
     gJobject = cls;
-    if (!getPreferenceB("RSFEC", false) || !getPreferenceB("RSFEC_V2_ENABLED", false))
+    if (!getPreferenceB("RSFEC_V2_ENABLED", true))
         return JNI_FALSE;
-    return scva_v2::transmit(env, cls, data, length, type) ? JNI_TRUE : JNI_FALSE;
+    return scva_v2_modem::transmit(env, cls, data, length, type) ? JNI_TRUE : JNI_FALSE;
 }
 
 //Processes the data buffer for TX through the current modem in C++
 extern "C" JNIEXPORT jboolean
 Java_com_SCVA_Modem_txCProcess(JNIEnv *env, jclass thishere,
                                jbyteArray myjbuffer, jint length) {
+    if (gPhoneBackendActive.load()) return JNI_FALSE;
+    if (!active_modem) return JNI_FALSE;
     //Save environment if we need to call any methods in Java
     gEnv = env;
     gJobject = thishere;
 
-    if (!forcePlainTextTx && getPreferenceB("RSFEC", false) && getPreferenceB("RSFEC_V2_ENABLED", false)) {
-        return scva_v2::transmit(env, thishere, myjbuffer, length, 1) ? JNI_TRUE : JNI_FALSE;
+    if (!forcePlainTextTx && getPreferenceB("RSFEC_V2_ENABLED", true)) {
+        return scva_v2_modem::transmit(env, thishere, myjbuffer, length, 1) ? JNI_TRUE : JNI_FALSE;
     }
     //Reset the static variables
     txCounter = 0;
@@ -1005,11 +946,6 @@ Java_com_SCVA_Modem_txCProcess(JNIEnv *env, jclass thishere,
     txDataBuffer = env->GetByteArrayElements(myjbuffer, 0);
     txDataBufferLength = length;
 
-    if (!forcePlainTextTx && getPreferenceB("RSFEC", false)) {
-        //Reed-Solomon FEC Encode
-        rsFECEncode();
-
-    }
 
     /*
     for (int i = 0; i < txDataBufferLength; i++)
@@ -1078,6 +1014,7 @@ Java_com_SCVA_Modem_txCProcess(JNIEnv *env, jclass thishere,
 
 extern "C" JNIEXPORT jboolean
 Java_com_SCVA_Modem_txPlainCProcess(JNIEnv *env, jclass cls, jbyteArray buffer, jint length) {
+    if (gPhoneBackendActive.load()) return JNI_FALSE;
     forcePlainTextTx = true;
     jboolean result = Java_com_SCVA_Modem_txCProcess(env, cls, buffer, length);
     forcePlainTextTx = false;
@@ -1100,6 +1037,7 @@ Java_com_SCVA_Modem_getTxProgressPercent(JNIEnv *env, jclass thishere) {
 extern "C" JNIEXPORT void
 Java_com_SCVA_Modem_setSlowCpuFlag(JNIEnv *env, jclass thishere,
                                    jboolean mSlowCpu) {
+    if (gPhoneBackendActive.load()) return;
     progdefaults.slowcpu = mSlowCpu;
     return;
 }
@@ -1108,6 +1046,7 @@ Java_com_SCVA_Modem_setSlowCpuFlag(JNIEnv *env, jclass thishere,
 extern "C" JNIEXPORT void
 Java_com_SCVA_Modem_setAfcOnOff(JNIEnv *env, jobject thishere,
                                 bool mAfcOnOff) {
+    if (gPhoneBackendActive.load()) return;
     progdefaults.afconoff = mAfcOnOff;
     return;
 }
@@ -1117,12 +1056,13 @@ extern "C" JNIEXPORT void
 Java_com_SCVA_Modem_txPicture(JNIEnv *env, jclass thishere,
                               jbyteArray txPictureBuffer, jint txPictureWidth, jint txPictureHeight,
                               jint txPictureTxSpeed, jint txPictureColour) {
+    if (gPhoneBackendActive.load()) return;
     //Save environment if we need to call any methods in Java
     gEnv = env;
     gJobject = thishere;
 
     //Make sure we have the correct modem
-    if (serviceme != active_modem) return;
+    if (!active_modem || serviceme != active_modem) return;
     //Extract the data and a pointer
     signed char *inbuf = env->GetByteArrayElements(txPictureBuffer, 0);
     //Convert to C++ Picture Buffer
@@ -1223,6 +1163,8 @@ Java_com_SCVA_Modem_txPicture(JNIEnv *env, jclass thishere,
 //Search Up
 extern "C" JNIEXPORT void
 Java_com_SCVA_Modem_searchUp(JNIEnv *env, jclass thishere) {
+    if (gPhoneBackendActive.load()) return;
+    std::lock_guard<std::mutex> guard(radioMetadataMutex);
     gEnv = env;
     if (active_modem != NULL) {
         active_modem->searchUp();
@@ -1232,6 +1174,8 @@ Java_com_SCVA_Modem_searchUp(JNIEnv *env, jclass thishere) {
 //Search Up
 extern "C" JNIEXPORT void
 Java_com_SCVA_Modem_searchDown(JNIEnv *env, jclass thishere) {
+    if (gPhoneBackendActive.load()) return;
+    std::lock_guard<std::mutex> guard(radioMetadataMutex);
     gEnv = env;
     if (active_modem != NULL) {
         active_modem->searchDown();
@@ -1513,4 +1457,34 @@ bool rsFECDecode() {
         return false;
     }
     return true;
+}
+
+// Private Java entry: Processor cleanup has joined RX and TX/tune, including
+// synchronous JNI callbacks and worker audio finally blocks, before this call.
+extern "C" JNIEXPORT void
+Java_com_SCVA_Modem_disposeRadioNative(JNIEnv *, jclass) {
+    std::lock_guard<std::mutex> guard(radioMetadataMutex);
+    delete active_modem;
+    active_modem = NULL;
+    serviceme = NULL; // Borrowed MFSK image alias, never independently deleted.
+    delete RsidModem;
+    RsidModem = NULL;
+    if (xmtpicbuff) { delete[] xmtpicbuff; xmtpicbuff = NULL; }
+    scva_v2::resetReceive(); // Full backend lifetime ends, not a mode change.
+    scva_v2::endReceive();
+    rxCodeword.clear(); rxCodewordIndex = 0; codewordReceiving = false;
+    startSequenceIndex = 0; startSequence.clear(); stopSequence.clear();
+    lastCharPos = 0; decodedBuffer[0] = 0;
+    utfExpectedChars = 0; utfFoundChars = 0;
+    pictureW = 0; pictureH = 0; audioBufferIndex = 0;
+    // The advancing TX cursor may refer to JNI-borrowed or V1-produced bytes.
+    // It is not an owning allocation base and must not be deleted here.
+    txDataBuffer = NULL; txDataBufferLength = 0; txCounter = 0;
+    forcePlainTextTx = false;
+    gEnv = NULL; gJobject = NULL; // Borrowed call-scoped handles, not global refs.
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_SCVA_Modem_setPhoneBackendActiveNative(JNIEnv *, jclass, jboolean active) {
+    gPhoneBackendActive.store(active == JNI_TRUE);
 }

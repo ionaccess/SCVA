@@ -4,7 +4,9 @@ import java.util.ArrayList;
 
 import com.SCVA.R;
 import com.SCVA.Interfaces.OnItemClickListener;
+import com.SCVA.Utils.Constants;
 import com.SCVA.Utils.GS;
+import com.SCVA.Utils.ModeListDefaults;
 import com.SCVA.adapters.ConfigurationAdapter;
 import com.SCVA.adapters.ContactAdapter;
 import com.SCVA.db.ChatsDataSource;
@@ -25,6 +27,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.app.AlertDialog;
 
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
@@ -40,7 +43,7 @@ public class ConfigurationsActivity extends BaseActivity implements View.OnClick
 	};
 	private boolean doEdit = false;
 	private CallType callType = CallType.ALL;
-	private ImageView search, addContact;
+	private ImageView search, addContact, addConfiguration;
 	private ArrayList<Object> allItems;
 	private TextView titleText;
 	private RecyclerView listView;
@@ -61,6 +64,7 @@ public class ConfigurationsActivity extends BaseActivity implements View.OnClick
 		configurationsDataSource = new ConfigurationsDataSource(this);
 		if (configurationsDataSource.getAllConfigurations().size() == 0)
 		{
+			ModeListDefaults.initializeForFreshInstall(this);
 			addConfigurations();
 		}
 
@@ -74,6 +78,8 @@ public class ConfigurationsActivity extends BaseActivity implements View.OnClick
 
 		addContact = findViewById(R.id.addEntry);
 		addContact.setOnClickListener(this);
+		addConfiguration = findViewById(R.id.addConfiguration);
+		addConfiguration.setOnClickListener(this);
 
 		search = findViewById(R.id.settings);
 		search.setOnClickListener(this);
@@ -87,6 +93,7 @@ public class ConfigurationsActivity extends BaseActivity implements View.OnClick
 		}
 		if (callType == CallType.CONTACT)
 		{
+			addConfiguration.setVisibility(View.GONE);
 			selectedContact = getIntent().getParcelableExtra("CONTACT");
 		}
 		if (callType == CallType.SELECTION)
@@ -138,6 +145,20 @@ public class ConfigurationsActivity extends BaseActivity implements View.OnClick
 			// intent.putExtra("TYPE", "CONTACT");
 			// startActivity(intent);
 		}
+		if (view == addConfiguration)
+		{
+			new AlertDialog.Builder(this).setTitle("New configuration")
+					.setItems(new String[] { "Radio Modem", "GGWave", "MODEM73" }, (dialog, which) -> {
+						Class<?> target = which == 1 ? GGWaveConfigurationActivity.class : which == 2 ? Modem73ConfigurationActivity.class : AddConfigurationActivity.class;
+						Intent intent = new Intent(this, target);
+						intent.putExtra("TYPE", callType == CallType.SELECTION ? "CONTACT" : "ALL");
+						if (selectedContact != null) intent.putExtra("CONTACT", (Parcelable) selectedContact);
+						intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+						if (callType == CallType.SELECTION) startActivityForResult(intent, CONFIG_SELECTION_REQUEST);
+						else startActivity(intent);
+					}).show();
+			return;
+		}
 		if (view == search)
 		{
             int chatId = new ChatsDataSource(this).getChatIdAgainstContact(selectedContact.getId());
@@ -184,24 +205,19 @@ public class ConfigurationsActivity extends BaseActivity implements View.OnClick
 	{
 		if (callType == CallType.ALL)
 		{
-			Intent intent = new Intent(this, AddConfigurationActivity.class);
-			intent.putExtra("OBJECT", ((Parcelable) model));
-			intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-			startActivity(intent);
+			openConfigurationEditor((Configuration) model);
 		}
 		if (callType == CallType.CONTACT)
 		{
-			Intent intent = new Intent(this, AddConfigurationActivity.class);
-			intent.putExtra("OBJECT", ((Parcelable) model));
-			intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-			startActivity(intent);
+			openConfigurationEditor((Configuration) model);
 		}
 		if (callType == CallType.SELECTION)
 		{
 			if (doEdit)
 			{
 				Configuration tmpConfig = ((Configuration) model);
-				Intent intent = new Intent(this, AddConfigurationActivity.class);
+				Class<?> target = editorFor(tmpConfig);
+				Intent intent = new Intent(this, target);
 				intent.putExtra("TYPE", "CONTACT");
 				intent.putExtra("OBJECT", (Parcelable) tmpConfig);
 				intent.putExtra("CONTACT", (Parcelable) selectedContact);
@@ -217,6 +233,22 @@ public class ConfigurationsActivity extends BaseActivity implements View.OnClick
 				finish();
 			}
 		}
+	}
+
+	private void openConfigurationEditor(Configuration configuration)
+	{
+		Class<?> target = editorFor(configuration);
+		Intent intent = new Intent(this, target);
+		intent.putExtra("OBJECT", (Parcelable) configuration);
+		intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+		startActivity(intent);
+	}
+
+	private static Class<?> editorFor(Configuration configuration)
+	{
+		if ("GGWave".equals(configuration.getModulationType())) return GGWaveConfigurationActivity.class;
+		if ("MODEM73".equals(configuration.getModulationType())) return Modem73ConfigurationActivity.class;
+		return AddConfigurationActivity.class;
 	}
 
 	@Override
@@ -383,10 +415,51 @@ public class ConfigurationsActivity extends BaseActivity implements View.OnClick
 		configuration.setModulationType("BPSK31");
 		configuration.setFrequency(1500);
 		configuration.setrSErrorCorrection("2");
+		configuration.setV2FecEnabled(false); // Preserve the special AndFlmsg configuration without modem FEC.
 		configuration.setEncryption(false);
 		configuration.setEncryptionType("aes");
 		configuration.setAudioGain(12);
 		configuration.setSquelch(30);
+		configuration.setAfc(false);
+		configuration.setrXRsID(false);
+		configuration.settXRsID(false);
+		configurationsDataSource.create(configuration);
+
+		configuration = new Configuration();
+		configuration.setName("GGWave");
+		configuration.setDefault(true);
+		configuration.setDescription("Bounded GGWave");
+		configuration.setModulationType("GGWave");
+		configuration.setGgWaveSpeed("DT_FASTEST");
+		configuration.setGgWaveRxProtocols("DT_FASTEST");
+		configuration.setV2FecEnabled(false); // GGWave owns its transport coding.
+		configuration.setFrequency(0);
+		configuration.setrSErrorCorrection("1");
+		configuration.setEncryption(false);
+		configuration.setEncryptionType("aes");
+		configuration.setAudioGain(0);
+		configuration.setSquelch(0);
+		configuration.setAfc(false);
+		configuration.setrXRsID(false);
+		configuration.settXRsID(false);
+		configurationsDataSource.create(configuration);
+
+		configuration = new Configuration();
+		configuration.setName("MODEM73");
+		configuration.setDefault(true);
+		configuration.setDescription("Plaintext modem73 trial; default callsign SCVA");
+		configuration.setModulationType("MODEM73");
+		configuration.setModem73Profile("OFDM_QPSK_1_2_NORMAL");
+		configuration.setModem73Callsign(Configuration.DEFAULT_MODEM73_CALLSIGN);
+		configuration.setModem73VoxEnabled(false);
+		configuration.setModem73VoxLeadMs(550);
+		configuration.setV2FecEnabled(false);
+		configuration.setEncryption(Configuration.DEFAULT_MODEM73_ENCRYPTION);
+		configuration.setEncryptionType("aes");
+		configuration.setFrequency(0);
+		configuration.setrSErrorCorrection("1");
+		configuration.setAudioGain(0);
+		configuration.setSquelch(0);
 		configuration.setAfc(false);
 		configuration.setrXRsID(false);
 		configuration.settXRsID(false);

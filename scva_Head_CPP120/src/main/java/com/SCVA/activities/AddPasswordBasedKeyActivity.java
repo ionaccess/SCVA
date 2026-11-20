@@ -69,7 +69,7 @@ public class AddPasswordBasedKeyActivity extends Activity implements View.OnClic
 			}
 
 			key.setName(name.getText().toString());
-			keyStore.create(key);
+			try { keyStore.create(key); } catch(com.SCVA.db.SqliteHelper.UnsupportedMessageSchemaException unsupported) { Toast.makeText(AddPasswordBasedKeyActivity.this,unsupported.getMessage(),Toast.LENGTH_LONG).show();return; }
 
 			Toast.makeText(AddPasswordBasedKeyActivity.this, "Key saved.", Toast.LENGTH_LONG).show();
 			finish();
@@ -150,7 +150,7 @@ public class AddPasswordBasedKeyActivity extends Activity implements View.OnClic
 				catch (Exception e)
 				{
 				}
-				Utils.println(kk);
+				/* Utils.println(kk); // Secret material: no default logging. */
 				qrCodeImage = getQrCode(key.getKeyText(), 180);
 				qrCode.setImageBitmap(qrCodeImage);
 

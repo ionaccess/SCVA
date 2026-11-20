@@ -13,6 +13,9 @@ import android.database.Cursor;
 
 public class KeysDataSource extends SqliteHelper
 {
+    public static final class KeyHistoryPolicyException extends IllegalStateException {
+        public KeyHistoryPolicyException() { super("Key material/contact cannot be replaced, and a key referenced by encrypted history cannot be deleted. Create/import a new key row for replacement; keep the old key for history."); }
+    }
 	public static String TABLE_NAME = "tblKeys";
 
 	public static String ID = "id";
@@ -36,6 +39,7 @@ public class KeysDataSource extends SqliteHelper
 
 	public void create(Key item)
 	{
+        requireMessageMetadataSchema();
 		ContentValues values = new ContentValues();
 		values.put(NAME, item.getName());
 		values.put(DATE, item.getCreatedOn());
@@ -43,11 +47,13 @@ public class KeysDataSource extends SqliteHelper
 		values.put(KEY_TEXT, item.getKeyText());
 		values.put(IS_DEFAULT, item.isDefault());
 		values.put(USER_GROUP_ID, item.getUserGroupId());
-		create(TABLE_NAME, values);
+		long id=insertSensitive(TABLE_NAME, values);
+        if(id<=0)throw new IllegalStateException("Key storage failed");item.setId((int)id);
 	}
 
 	public void markKeyAsDefault(Key key)
 	{
+        requireMessageMetadataSchema();
 		String query = "UPDATE " + TABLE_NAME + " SET " + IS_DEFAULT + " = CASE WHEN id = " + key.getId() + " THEN 1 ELSE 0 END WHERE " + USER_GROUP_ID + " = "
 				+ key.getUserGroupId();
 		execSQL(query);
@@ -55,12 +61,14 @@ public class KeysDataSource extends SqliteHelper
 
 	public void markKeyActive(Key key)
 	{
+        requireMessageMetadataSchema();
 		String query = "UPDATE " + TABLE_NAME + " SET " + IS_ACTIVE + " = CASE WHEN id = " + key.getId() + " THEN 1 ELSE 0 END";
 		execSQL(query);
 	}
 
 	public boolean update(Key item)
 	{
+        requireMessageMetadataSchema();
 		ContentValues values = new ContentValues();
 		values.put(NAME, item.getName());
 		values.put(KEY_TEXT, item.getKeyText());
@@ -70,13 +78,16 @@ public class KeysDataSource extends SqliteHelper
 		values.put(IS_ACTIVE, item.isActive());
 
 		String whereClause = "id = " + item.getId();
-		return update(TABLE_NAME, values, whereClause);
+		try { return update(TABLE_NAME, values, whereClause); }
+        catch(android.database.sqlite.SQLiteConstraintException blocked) { close();throw new KeyHistoryPolicyException(); }
 	}
 
 	public boolean delete(Key item)
 	{
+        requireMessageMetadataSchema();
 		String whereClause = "rowid = " + item.getId();
-		return delete(TABLE_NAME, whereClause);
+		try { return delete(TABLE_NAME, whereClause); }
+        catch(android.database.sqlite.SQLiteConstraintException blocked) { close();throw new KeyHistoryPolicyException(); }
 	}
 
 	public ArrayList<Key> getAllKeys()
@@ -140,8 +151,10 @@ public class KeysDataSource extends SqliteHelper
 
 	public boolean deleteUserKeys(int userId)
 	{
+        requireMessageMetadataSchema();
 		String whereClause = "userGroupId = " + userId;
-		return delete(TABLE_NAME, whereClause);
+		try { return delete(TABLE_NAME, whereClause); }
+        catch(android.database.sqlite.SQLiteConstraintException blocked) { close();throw new KeyHistoryPolicyException(); }
 	}
 
 	public int getUserKeyCount(int userId)
@@ -179,6 +192,8 @@ public class KeysDataSource extends SqliteHelper
 
 	public void burnKeyStore()
 	{
-		execSQL("DELETE FROM " + TABLE_NAME);
+        requireMessageMetadataSchema();
+		try { execSQL("DELETE FROM " + TABLE_NAME); }
+        catch(android.database.sqlite.SQLiteConstraintException blocked) { close();throw new KeyHistoryPolicyException(); }
 	}
 }

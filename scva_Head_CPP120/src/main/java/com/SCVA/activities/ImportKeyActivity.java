@@ -98,7 +98,7 @@ public class ImportKeyActivity extends Activity implements View.OnClickListener,
 		if (actionType == ActionType.TEXT)
 		{
 			keyText = getIntent().getStringExtra("KEY_TEXT");
-			Utils.println(keyText);
+			/* Utils.println(keyText); // Secret material: no default logging. */
 			if (keyText.length() > 0)
 			{
 				found = true;
@@ -154,7 +154,7 @@ public class ImportKeyActivity extends Activity implements View.OnClickListener,
 				Contact tmpContact = getIntent().getParcelableExtra("CONTACT");
 				key.setUserGroupId(tmpContact.getId());
 			}
-			keyStore.create(key);
+			try { keyStore.create(key); } catch(com.SCVA.db.SqliteHelper.UnsupportedMessageSchemaException unsupported) { Toast.makeText(ImportKeyActivity.this,unsupported.getMessage(),Toast.LENGTH_LONG).show();return; }
 
 			Toast.makeText(ImportKeyActivity.this, "Key is Imported.", Toast.LENGTH_LONG).show();
 			ImportKeyActivity.this.finish();
@@ -168,7 +168,7 @@ public class ImportKeyActivity extends Activity implements View.OnClickListener,
 	public void onQRCodeRead(String text, PointF[] points)
 	{
 		keyText = text;
-		Utils.println(keyText);
+		/* Utils.println(keyText); // Secret material: no default logging. */
 		if (!found)
 		{
 			found = true;
@@ -266,10 +266,10 @@ public class ImportKeyActivity extends Activity implements View.OnClickListener,
 
 			// 4. Result
 			String qrCodeText = result.getText();
-			Utils.println("QR_CODE  Content: " + qrCodeText);
+			/* Utils.println("QR_CODE  Content: " + qrCodeText); // Secret material: no default logging. */
 
 			keyText = qrCodeText;
-			Utils.println(keyText);
+			/* Utils.println(keyText); // Secret material: no default logging. */
 			if (result.getText().length() > 0)
 			{
 				found = true;

@@ -20,24 +20,22 @@ package com.SCVA;
 
 import com.SCVA.Utils.Constants;
 import com.SCVA.Utils.GS;
+import com.SCVA.Utils.ModeListDefaults;
+import com.SCVA.Utils.Utils;
 import com.SCVA.activities.AllChatsActivity;
 import com.SCVA.activities.ChangeVerificationPINActivity;
 import com.SCVA.activities.KeysActivity;
-import com.SCVA.Utils.Utils;
-import com.SCVA.db.KeysDataSource;
+import com.SCVA.activities.LogsActivity;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceCategory;
-import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.widget.Toast;
 
@@ -47,16 +45,69 @@ public class myPreferences extends PreferenceActivity implements SharedPreferenc
 {
 	int key_lenght = 0;
 	private int v2TestSequence = 1;
+	private Processor processor;
+	private boolean serviceBinding;
+	private final android.content.ServiceConnection modemConnection = new android.content.ServiceConnection()
+	{
+		public void onServiceConnected(android.content.ComponentName name, android.os.IBinder binder)
+		{
+			processor = ((Processor.LocalBinder) binder).getService();
+		}
+
+		public void onServiceDisconnected(android.content.ComponentName name)
+		{
+			processor = null;
+		}
+	};
+	private Processor selectedProcessor()
+	{
+		if (processor == null) throw new IllegalStateException("Open a configured chat and wait for the Radio modem first");
+		return processor;
+	}
+
+	@Override
+	protected void onStart()
+	{
+		super.onStart();
+		serviceBinding = bindService(new Intent(this, Processor.class), modemConnection, 0);
+	}
+
+	@Override
+	protected void onStop()
+	{
+		if (serviceBinding)
+		{
+			unbindService(modemConnection);
+			serviceBinding = false;
+		}
+		processor = null;
+		super.onStop();
+	}
 	public SharedPreferences.OnSharedPreferenceChangeListener splistener;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 		super.onCreate(savedInstanceState);
+		ModeListDefaults.initializeForFreshInstall(this);
 		// Start from the fixed section of the preferences
 		addPreferencesFromResource(R.xml.preferences);
+		Preference diagnostics = findPreference(GgWaveDiagnostics.ENABLED);
+		if (diagnostics != null) diagnostics.setOnPreferenceChangeListener((p, value) -> {
+			if (!Boolean.TRUE.equals(value)) GgWaveDiagnostics.disableAll();
+			return true;
+		});
+		Preference payloadLogs = findPreference(GgWaveDiagnostics.CONTENT);
+		if (payloadLogs != null) payloadLogs.setOnPreferenceChangeListener((p, value) -> {
+			if (!Boolean.TRUE.equals(value)) GgWaveDiagnostics.disableContent();
+			return true;
+		});
+		Preference viewGgLogs = findPreference("GGWAVE_LOG_VIEW");
+		if (viewGgLogs != null) viewGgLogs.setOnPreferenceClickListener(p -> {
+			startActivity(new Intent(myPreferences.this, LogsActivity.class));
+			return true;
+		});
 		PreferenceScreen screen = getPreferenceScreen();
-		CheckBoxPreference v2Switch = (CheckBoxPreference) findPreference("RSFEC_V2_ENABLED");
 		ListPreference v2Preset = (ListPreference) findPreference("RSFEC_V2_PRESET");
 		v2Preset.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener()
 		{
@@ -69,42 +120,12 @@ public class myPreferences extends PreferenceActivity implements SharedPreferenc
 					return false;
 				}
 				String selected = String.valueOf(value);
-				if (!(selected.equals("1") || selected.equals("4") || selected.equals("5") || selected.equals("6") || selected.equals("7") || selected.equals("8") || selected.equals("9")))
+				if (!(selected.equals("1") || selected.equals("2") || selected.equals("4") || selected.equals("5") || selected.equals("6") || selected.equals("7")
+						|| selected.equals("8") || selected.equals("9")))
 					return false;
 				return true;
 			}
 		});
-		v2Switch.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener()
-		{
-			@Override
-			public boolean onPreferenceChange(Preference p, Object value)
-			{
-				boolean enabled = Boolean.TRUE.equals(value);
-				if (GS.gI().isTXActive())
-				{
-					android.widget.Toast.makeText(myPreferences.this, "Change V2 FEC between transmissions", android.widget.Toast.LENGTH_LONG).show();
-					return false;
-				}
-				try
-				{
-					if (enabled && !Modem.isV2ModemSupported())
-					{
-						Toast.makeText(myPreferences.this, "V2 currently supports THOR22 or THOR50x1 only", Toast.LENGTH_LONG).show();
-						Utils.println("[SCVA-V2-FEC][RX][STEP=00 STATE] V2 enable rejected: unsupported modem");
-						return false;
-					}
-					Utils.println("[SCVA-V2-FEC][RX][STEP=00 STATE] " + (enabled ? "V2 enabled" : "V2 disabled"));
-					p.setSummary(enabled ? "V2 FEC: ON — Experimental" : "V2 FEC: OFF");
-				}
-				catch (Exception e)
-				{
-					Toast.makeText(myPreferences.this, "V2 currently supports THOR22 or THOR50x1 only", android.widget.Toast.LENGTH_LONG).show();
-					return false;
-				}
-				return true;
-			}
-		});
-		v2Switch.setSummary(v2Switch.isChecked() ? "V2 FEC: ON — Experimental" : "V2 FEC: OFF");
 		Preference v2Test = findPreference("RSFEC_V2_TEST");
 		v2Test.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener()
 		{
@@ -113,7 +134,7 @@ public class myPreferences extends PreferenceActivity implements SharedPreferenc
 			{
 				try
 				{
-					Modem.sendV2Diagnostic(v2TestSequence++);
+					selectedProcessor().sendDiagnostic(v2TestSequence++, false);
 				}
 				catch (RuntimeException error)
 				{
@@ -130,7 +151,7 @@ public class myPreferences extends PreferenceActivity implements SharedPreferenc
 			{
 				try
 				{
-					Modem.sendReadableRadioTest(v2TestSequence++);
+					selectedProcessor().sendDiagnostic(v2TestSequence++, true);
 				}
 				catch (RuntimeException error)
 				{
@@ -255,10 +276,23 @@ public class myPreferences extends PreferenceActivity implements SharedPreferenc
 		// to remove in user mode
 		if (!Constants.devMode)
 		{
-            PreferenceScreen modemCategory = (PreferenceScreen) findPreference("rsFECPS");
 			screen.removePreference(legacyApp);
-            modemCategory.removePreference(v2Test);
-            modemCategory.removePreference(readableTest);
+
+			Preference dataexchangePS = (Preference) findPreference("dataexchangePS");
+			screen.removePreference(dataexchangePS);
+
+			// Preference encryption = (Preference) findPreference("encryption");
+			// screen.removePreference(encryption);
+
+			PreferenceScreen userInterfacePS = (PreferenceScreen) findPreference("userInterfacePS");
+			screen.removePreference(userInterfacePS);
+
+			Preference imageattachmentPS = (Preference) findPreference("imageattachmentPS");
+			screen.removePreference(imageattachmentPS);
+
+			PreferenceScreen modemCategory = (PreferenceScreen) findPreference("rsFECPS");
+			modemCategory.removePreference(v2Test);
+			modemCategory.removePreference(readableTest);
 		}
 
 		// to remove in advance mode
@@ -272,14 +306,17 @@ public class myPreferences extends PreferenceActivity implements SharedPreferenc
 			Preference modemPS = (Preference) findPreference("modemPS");
 			screen.removePreference(modemPS);
 
-			Preference dataexchangePS = (Preference) findPreference("dataexchangePS");
-			screen.removePreference(dataexchangePS);
+            Preference ggwaveDiagnosticsPS = (Preference) findPreference("ggwaveDiagnosticsPS");
+            screen.removePreference(ggwaveDiagnosticsPS);
+
+			// Preference dataexchangePS = (Preference) findPreference("dataexchangePS");
+			// screen.removePreference(dataexchangePS);
 
 			// Preference encryption = (Preference) findPreference("encryption");
 			// screen.removePreference(encryption);
 
-			Preference imageattachmentPS = (Preference) findPreference("imageattachmentPS");
-			screen.removePreference(imageattachmentPS);
+			// Preference imageattachmentPS = (Preference) findPreference("imageattachmentPS");
+			// screen.removePreference(imageattachmentPS);
 		}
 	}
 

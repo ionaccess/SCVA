@@ -26,9 +26,29 @@ static unsigned long txProcedureActive=0;
 static bool isV2SupportedThorMode() {
     return active_modem &&
            (active_modem->get_mode() == MODE_THOR22 ||
-            active_modem->get_mode() == MODE_THOR50x1);
+            active_modem->get_mode() == MODE_THOR50x1 ||
+            active_modem->get_mode() == MODE_THOR50x2 ||
+            active_modem->get_mode() == MODE_THOR8 ||
+            active_modem->get_mode() == MODE_THOR100 ||
+            active_modem->get_mode() == MODE_PSK31 ||
+            active_modem->get_mode() == MODE_PSK125 ||
+            active_modem->get_mode() == MODE_PSK500 ||
+            active_modem->get_mode() == MODE_MFSK8 ||
+            active_modem->get_mode() == MODE_MFSK32 ||
+            active_modem->get_mode() == MODE_MFSK64 ||
+            active_modem->get_mode() == MODE_MFSK128);
 }
 static const char* v2ModemName() {
+    if (active_modem && active_modem->get_mode() == MODE_MFSK128) return "MFSK128";
+    if (active_modem && active_modem->get_mode() == MODE_MFSK64) return "MFSK64";
+    if (active_modem && active_modem->get_mode() == MODE_MFSK32) return "MFSK32";
+    if (active_modem && active_modem->get_mode() == MODE_MFSK8) return "MFSK8";
+    if (active_modem && active_modem->get_mode() == MODE_PSK500) return "BPSK500";
+    if (active_modem && active_modem->get_mode() == MODE_PSK125) return "BPSK125";
+    if (active_modem && active_modem->get_mode() == MODE_PSK31) return "BPSK31";
+    if (active_modem && active_modem->get_mode() == MODE_THOR100) return "THOR100";
+    if (active_modem && active_modem->get_mode() == MODE_THOR8) return "THOR8";
+    if (active_modem && active_modem->get_mode() == MODE_THOR50x2) return "THOR50x2";
     return active_modem && active_modem->get_mode() == MODE_THOR50x1 ? "THOR50x1" : "THOR22";
 }
 static std::string proc(unsigned long p){char b[32];std::snprintf(b,sizeof(b),"P%06lu",p);return b;}

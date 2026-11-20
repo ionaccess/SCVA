@@ -368,7 +368,7 @@ public class GS
 		RxModem = rxModem;
 	}
 
-	private int RxModem = Modem.customModeListInt[0];
+	private int RxModem = -1; // Explicit Processor selection supplies the Radio identity.
 
 	public Notification getMyNotification()
 	{
@@ -409,7 +409,9 @@ public class GS
 
 	public void applyConfig(Configuration configuration, boolean image)
 	{
-		getEditor().putBoolean("RSFEC", true).apply();// ReedSolomn
+		boolean useV2Fec = configuration.getId() != 9 && configuration.isV2FecEnabled()
+				&& !"GGWave".equals(configuration.getModulationType());
+		getEditor().putBoolean("RSFEC_V2_ENABLED", useV2Fec).apply();
 		getEditor().putBoolean("TXRSID", configuration.istXRsID());
 		getEditor().putBoolean("RXRSID", configuration.isrXRsID());
 
@@ -417,10 +419,8 @@ public class GS
 
 		getEditor().putString("AFREQUENCY", "" + configuration.getFrequency()).apply();// AFREQUENCY
 
-		if (getValue().getBoolean("RSFEC_V2_ENABLED", false))
+		if (useV2Fec)
 			getEditor().putString("RSFEC_V2_PRESET", configuration.getrSErrorCorrection()).apply();
-		else
-			getEditor().putString("RSFEC_LEVEL", configuration.getrSErrorCorrection()).apply();
 		getEditor().putBoolean("use_enc", configuration.isEncryption()).apply(); // use_enc | key = use_enc value = true
 		getEditor().putString("enc_algorithm", configuration.getEncryptionType()).apply();// key = enc_algorithm value = aes
 		getEditor().putFloat("WFMAXVALUE", Float.parseFloat("" + configuration.getAudioGain())).apply();// WFMAXVALUE | not in use in saved file
@@ -429,20 +429,15 @@ public class GS
 
 		GS.gI().setRxModem(Modem.getMode(configuration.getModulationType()));
 
-		if (image)
-		{
-			getEditor().putBoolean("TXRSID", true);
-			getEditor().putString("LASTMODEUSED", "" + Modem.getMode("MFSK64")).apply();
-			GS.gI().setRxModem(Modem.getMode("MFSK64"));
-			getEditor().putString("AFREQUENCY", "1500").apply();
-			Modem.frequency = 1500;
-		}
+//		if (image)
+//		{
+//			getEditor().putBoolean("TXRSID", true);
+//			getEditor().putString("LASTMODEUSED", "" + Modem.getMode("MFSK64")).apply();
+//			GS.gI().setRxModem(Modem.getMode("MFSK64"));
+//			getEditor().putString("AFREQUENCY", "1500").apply();
+//			Modem.frequency = 1500;
+//		}
 
-		if (configuration.getId() == 9)
-		{
-			// disable Reed-Solomon Forward Error Correction in ANDFLmsg config
-			getEditor().putBoolean("RSFEC", false).apply();
-		}
 		// to make the changes effective
 		Modem.changemode(GS.gI().getRxModem());
 	}

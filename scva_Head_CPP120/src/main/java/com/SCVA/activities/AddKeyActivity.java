@@ -189,9 +189,9 @@ public class AddKeyActivity extends Activity implements View.OnClickListener, Ca
 
 				key.setName(name.getText().toString());
 				key.setCreatedOn("" + System.currentTimeMillis());
-				keyStore.create(key);
+				try { keyStore.create(key); } catch(com.SCVA.db.SqliteHelper.UnsupportedMessageSchemaException unsupported) { Toast.makeText(AddKeyActivity.this,unsupported.getMessage(),Toast.LENGTH_LONG).show();return; }
 
-				Utils.println(rand);
+				/* Utils.println(rand); // Secret material: no default logging. */
 				// qrCodeImage = getQrCode(rand, 1);
 				// qrCode.setImageBitmap(qrCodeImage);
 				//
@@ -212,7 +212,7 @@ public class AddKeyActivity extends Activity implements View.OnClickListener, Ca
 		if (progress > 99)
 		{
 			rand = new Utils().generateMd5(canvas.getRandom() + System.currentTimeMillis());
-			Utils.println(rand);
+			/* Utils.println(rand); // Secret material: no default logging. */
 			qrCodeImage = getQrCode(rand, 1);
 			qrCode.setImageBitmap(qrCodeImage);
 
